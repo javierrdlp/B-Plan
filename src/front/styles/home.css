@@ -9,7 +9,7 @@
     background-color: #67ABB8 ;
 }
 .description, .madrid, .madrid-li, .first-picture {
-    border-radius: 1rem !important; /* Ajusta el valor según lo que necesites */
+    border-radius: 1rem !important; 
 }
 .list-group-item{
    
