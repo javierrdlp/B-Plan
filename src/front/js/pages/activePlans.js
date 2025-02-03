@@ -193,7 +193,7 @@ export const ActivePlans = () => {
           </button>
         </div>
       </div>
-
+      <h4 className="text-center mb-4">Active Plans</h4>
       <div
         style={{
           backgroundColor: "#67ABB8",
@@ -201,7 +201,7 @@ export const ActivePlans = () => {
           borderRadius: "10px",
         }}
       >
-        <h4 className="text-center mb-4">Active Plans</h4>
+        
 
         
         <Carousel interval={5000} indicators={false}>
