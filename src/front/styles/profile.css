@@ -1,0 +1,34 @@
+#profileBackground {
+    border: 5px solid #262626; 
+    border-radius: 15px;
+}
+
+h4{
+    color:#262626;
+}
+label{
+    color:#262626;
+}
+.btnProfile {
+    background-color: #F15B40;  
+    color: white;    
+    border: 2px solid #262626;        
+    border-radius:  5px;
+    height: 40px;
+}
+
+.btnProfile:hover {
+    background-color: #D14C34;  
+}
+.input-group-text i {
+    color: #F15B40;
+}
+/* Carrusel - estilo del contenedor */
+.carousel-item-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    overflow-x: scroll;
+    padding: 10px;
+  }

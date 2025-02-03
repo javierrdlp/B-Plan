@@ -2,6 +2,7 @@
     "_meta": {
         "hash": {
             "sha256": "06f49fbe748ce19a68c3a8afe126e8b2968391a733f159165157c2b63292e99e"
+
         },
         "pipfile-spec": 6,
         "requires": {
@@ -54,6 +55,7 @@
             ],
             "markers": "python_version >= '3.7'",
             "version": "==4.2.1"
+
         },
         "blinker": {
             "hashes": [
