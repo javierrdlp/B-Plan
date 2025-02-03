@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { Context } from "../store/appContext";
 import madrid from "../../img/madrid.jpg";
 import street from "../../img/madrid-calle.jpg"
+import logoLetras from "../../img/logo_letras.png"
 import cinema from "../../img/cinema-review.jpg"
 import cafe from "../../img/cafe-review.jpeg"
 import restaurant from "../../img/restaurant-review.jpg"
@@ -27,27 +28,37 @@ export const Home = () => {
 			imageUrl: restaurant
 		}
 
+
 	]
 
 	return (
-		<div className="container justify-content-center">
-			<div className="row text-center rounded">
-				<div className="first-picture col-12 rounded">
-					<img className="rounded-3" src={street} />
+		<div className="container justify-content-center mt-5">
+			<div className="first-box row text-center rounded position-relative">
+
+				<div className="top-right-elements d-flex justify-content-end w-100 p-2">
+					<button className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+					<button className="register-button btn btn-secondary" data-bs-toggle="modal" data-bs-target="#registroModal">Sign up</button>
+				</div>
+
+				<div className="first-picture rounded">
+					<img className="logo-letras" src={logoLetras} alt="Website Logo" />
+					<br />
+					<button className="start-button btn btn-secondary mb-5" data-bs-toggle="modal" data-bs-target="#registroModal">Start now!</button>
 				</div>
 			</div>
 
+
+
 			<div className="row rounded mt-5">
 				<div className="description col-6 p-5">
-					<h1 className="display-6">
-						What about B-Plan?:
-					</h1>
+					<h1 className="display-6 b"><strong>
+						What about B-Plan?
+					</strong></h1>
 					<ul className="listToDo list-group list-group-flush">
-						<li class="toDo list-group-item border-0">Un elemento</li>
-						<li class="toDo list-group-item border-0">Un segundo elemento</li>
-						<li class="toDo list-group-item border-0">Un tercer elemento</li>
-						<li class="toDo list-group-item border-0">Un cuarto elemento</li>
-						<li class="toDo list-group-item border-0">Y un quinto elemento</li>
+						<li class="toDo list-group-item border-0">- Meet new people and make plans instantly</li>
+						<li class="toDo list-group-item border-0">- Find company for every occasion</li>
+						<li class="toDo list-group-item border-0">- Spontaneous plans, real connections</li>
+						<li class="toDo list-group-item border-0">- Never be without someone to go out with again</li>
 					</ul>
 				</div>
 				<div className="rounded col-6 p-3">
@@ -65,22 +76,87 @@ export const Home = () => {
 			</div>
 
 			<div className="row rounded mt-5">
-				<h1 className="display-6">
+				<p className="display-6">
 					Reviews:
-				</h1>
-				<h5 className="text-down-review display-6">
+				</p>
+				<p className="text-down-review display-6">
 					What the people says about B-Plan
-				</h5>
+				</p>
 			</div>
-			<div className="row">
-			<div className="col-12 d-flex justify-content-around mt-5">
-				{data.map((value, index) => {
-					return <ReviewCards key={index} title={value.title} description={value.description} imageUrl={value.imageUrl} />
-				})}
-			</div>
+			<div className="row ">
+				<div className="col-12 d-flex justify-content-around">
+					{data.map((value, index) => {
+						return <ReviewCards key={index} title={value.title} description={value.description} imageUrl={value.imageUrl} />
+					})}
+				</div>
 			</div>
 
+			<div className="modal fade" id="registroModal" tabindex="-1" aria-labelledby="registerModal" aria-hidden="true">
+				<div className="modal-dialog">
+					<div className="modal-content">
+						<img className="logo-modal" src={logoLetras} alt="Website Logo" />
+						<div className="modal-header">
+							<h1 className="modal-title fs-3" id="registerModal">Create an account</h1>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div className="modal-body">
+							<form>
+								<div className="mb-3">
+									<label for="text-name" className="col-form-label">Profile name:</label>
+									<input type="text" className="form-control" id="register-name" />
+								</div>
+								<div className="mb-3">
+									<label for="text-email" className="col-form-label">Email:</label>
+									<input type="email" className="form-control" id="register-email" />
+								</div>
+								<div className="mb-3">
+									<label for="text-password" className="col-form-label">Password:</label>
+									<input type="password" className="form-control" id="register-password" />
+								</div>
+							</form>
+						</div>
+						<div className="modal-footer justify-content-center">
+							<button className="ok-register-button btn btn-secondary">Register</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div className="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModal" aria-hidden="true">
+				<div className="modal-dialog">
+					<div className="modal-content">
+						<img className="logo-modal" src={logoLetras} alt="Website Logo" />
+						<div className="modal-header">
+							<h1 className="modal-title fs-3" id="registerModal">Login</h1>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div className="modal-body">
+							<form>
+								<div className="mb-3">
+									<label for="text-email" className="col-form-label">Email:</label>
+									<input type="email" className="form-control" id="login-email" />
+								</div>
+								<div className="mb-3">
+									<label for="text-password" className="col-form-label">Password:</label>
+									<input type="password" className="form-control" id="login-password" />
+								</div>
+								<div class="form-check">
+									<input className="form-check-input" type="checkbox" value="" id="checkRemember" />
+									<label className="form-check-label" for="flexCheckRemember">
+										Remember me
+									</label>
+								</div>
+							</form>
+						</div>
+						<div className="modal-footer justify-content-center">
+							<button className="ok-register-button btn btn-secondary">Login</button>
+						</div>
+					</div>
+				</div>
+			</div>
 
 		</div>
+
+
 	);
 };
