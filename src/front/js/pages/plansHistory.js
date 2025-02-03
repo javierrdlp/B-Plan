@@ -82,7 +82,7 @@ export const PlansHistory = () => {
 
   return (
     <div className="container mt-4">
-      {/* Imagen de fondo */}
+      
       <div
         id="profileBackground"
         className="mb-3 position-relative"
@@ -109,7 +109,7 @@ export const PlansHistory = () => {
         </button>
       </div>
 
-      {/* Imagen de perfil */}
+      
       <div className="d-flex justify-content-center mb-4">
         <div className="position-relative">
           {!profileImage ? (
@@ -155,14 +155,14 @@ export const PlansHistory = () => {
         </div>
       </div>
 
-      {/* Nombre del usuario */}
+      
       <div className="text-center mb-4">
         <h4>{store.user?.name || "User Name"}</h4> 
       </div>
 
       <hr className="my-4" />
 
-      {/* Botones de navegación */}
+     
       <div className="row text-center mb-4">
         <div className="col">
           <button
@@ -189,7 +189,7 @@ export const PlansHistory = () => {
         </div>
       </div>
 
-      {/* Carrusel de planes históricos */}
+      <h4 className="text-center mb-4">History Plans</h4>
       <div
         style={{
           backgroundColor: "#67ABB8",
@@ -197,9 +197,9 @@ export const PlansHistory = () => {
           borderRadius: "10px",
         }}
       >
-        <h4 className="text-center mb-4">History Plans</h4>
+        
 
-        {/* Carrusel de React Bootstrap */}
+        
         <Carousel interval={5000} indicators={false}>
           {groupedPlans.map((group, index) => (
             <Carousel.Item key={index}>
@@ -235,7 +235,7 @@ export const PlansHistory = () => {
         </Carousel>
       </div>
 
-      {/* Inputs de archivos ocultos */}
+      
       <input
         type="file"
         ref={profileFileInputRef}
