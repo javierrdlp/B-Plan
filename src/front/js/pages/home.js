@@ -7,7 +7,9 @@ import cinema from "../../img/cinema-review.jpg"
 import cafe from "../../img/cafe-review.jpeg"
 import restaurant from "../../img/restaurant-review.jpg"
 import "../../styles/home.css";
+import { Link } from 'react-router-dom';
 import ReviewCards from "../component/reviewCard";
+
 
 export const Home = () => {
 	const { store, actions } = useContext(Context);
@@ -121,8 +123,7 @@ export const Home = () => {
 					</div>
 				</div>
 			</div>
-
-			<div className="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModal" aria-hidden="true">
+<div className="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModal" aria-hidden="true">
 				<div className="modal-dialog">
 					<div className="modal-content">
 						<img className="logo-modal" src={logoLetras} alt="Website Logo" />
@@ -154,9 +155,10 @@ export const Home = () => {
 					</div>
 				</div>
 			</div>
-
 		</div>
 
-
+  <p>
+        <Link to="/profile" className="btn btn-primary">Go to Profile</Link>
+      </p>
 	);
 };
