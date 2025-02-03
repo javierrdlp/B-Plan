@@ -117,13 +117,22 @@ def login():
     access_token = create_access_token(identity=user.email)
     return jsonify({'token': access_token}), 200
 
-@app.route("/private", methods=["GET"])
+@app.route('/private', methods=["GET"])
 @jwt_required()
 def protected():
     # Access the identity of the current user with get_jwt_identity
     current_user = get_jwt_identity()
     return jsonify({'msg': 'ok', 'user': current_user}), 200
 
+@app.route('/user/profile', methods=['GET'])
+@jwt_required()
+def profile():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    return jsonify({'msg': 'ok', 'user': {'id': user.id, 'email': user.email, 'name': user.name}}), 200
+    
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
