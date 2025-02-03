@@ -5,10 +5,10 @@
     one more css for each page that will contain the selected used 
     on that page only (the ones not reused in other pages).
 */
-.description, .toDo, .first-picture{
+.description, .toDo, .first-picture, .modal{
     background-color: #67ABB8 ;
 }
-.description, .madrid, .madrid-li, .first-picture {
+.description, .madrid, .madrid-li, .first-picture, .first-box {
     border-radius: 1rem !important; 
 }
 .list-group-item{
@@ -25,3 +25,82 @@
 .madrid{
     width: 25%;
 }
+
+.tittle{
+    font-size: 600%;
+}
+
+.logo-letras{
+    height: 300%;
+}
+
+.logo-modal{
+    width: 30%;
+}
+
+.first-picture{
+    height: 100%;
+}
+
+.start-button, .register-button, .ok-register-button{    
+    background-color: #F15B40;
+}
+
+.ok-register-button{
+    width: 40%;
+}
+
+.start-button{
+    height: 70px;
+    width: 200px;
+    font-size: 150%;
+}
+
+
+.first-box {
+    position: relative;
+    background-color:#67ABB8; 
+    padding: 20px;
+   
+}
+
+/* Poner imagen de fondo */
+/*
+.first-box {
+    background-image: url("ruta-de-tu-imagen.jpg");
+    background-size: cover;
+    background-position: center;
+}
+*/
+
+.top-right-elements {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.first-picture {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.form-check-input:checked {
+    background-color: #F15B40;
+    border-color: #F15B40;
+}
+
+.form-check-input:focus {
+    border-color: #F15B40; 
+    box-shadow: 0 0 0 0.25rem rgba(255, 72, 0, 0.25); 
+}
+
+.form-control:focus{
+    border-color: #F15B40; 
+    box-shadow: 0 0 0 0.25rem rgba(255, 72, 0, 0.25); 
+}
+
