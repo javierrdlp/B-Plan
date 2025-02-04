@@ -126,13 +126,49 @@ def protected():
 
 @app.route('/user/profile', methods=['GET'])
 @jwt_required()
-def profile():
+def get_profile():
     user_email = get_jwt_identity()
     user = User.query.filter_by(email=user_email).first()
     if user is None:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
     return jsonify({'msg': 'ok', 'user': {'id': user.id, 'email': user.email, 'name': user.name}}), 200
-    
+
+@app.route('/user/profile', methods=['PUT'])
+@jwt_required()
+def update_profile():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    data = request.get_json()
+    if 'name' in data: 
+        user.name = data['name']
+    if 'phone' in data:
+        user.phone = data['phone']
+    if 'description' in data:
+        user.description = data['description']
+    if 'address' in data:
+        user.address = data['address']
+    if 'birth' in data:
+        user.birth = data['birth']
+    if 'interests' in data:
+        user.interests = data['interests']
+    if 'image' in data:
+        user.image = data['image']
+
+    db.session.commit()
+
+    return jsonify({'msg': 'ok', 'user': {'id': user.id, 
+                                          'email': user.email, 
+                                          'name': user.name, 
+                                          'phone': user.phone,
+                                          'description': user.description, 
+                                          'address': user.address, 
+                                          'birth': user.birth.isoformat() if user.birth else None,
+                                          'interests': user.interests, 
+                                          'image': user.image, 
+                                          'subscription_date': user.subscription_date.isoformat() if user.subscription_date else None}}), 200
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
