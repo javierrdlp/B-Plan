@@ -2,6 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import datetime
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -263,6 +264,20 @@ def delete_plan(plan_id):
     db.session.delete(plan)
     db.session.commit()
     return jsonify({'msg': 'Plan eliminado'}), 200
+
+@app.route('/plans/active', methods=['GET'])
+@jwt_required()
+def get_active_plans():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    today = datetime.date.today()
+    upcoming_plans = db.session.query(Plan).join(UserPlan).filter(UserPlan.user_id == user.id, Plan.date > today).all()
+    if not upcoming_plans:
+        return jsonify({'msg': 'El usuario no tiene planes activos'}), 404
+    return jsonify({'msg': 'ok', 'upcoming_plans': [plan.serialize() for plan in upcoming_plans]}), 200
+    
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
