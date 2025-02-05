@@ -221,6 +221,10 @@ def create_plan():
     db.session.commit()
     return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 201
 
+@app.route('/plans', methods=['GET'])
+def get_plans():
+    plans = Plan.query.all()
+    return jsonify([plan.serialize() for plan in plans]), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
