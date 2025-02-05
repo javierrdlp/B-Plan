@@ -255,6 +255,15 @@ def put_plan(plan_id):
 
     return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
 
+@app.route('/plans/<int:plan_id>', methods=['DELETE'])
+def delete_plan(plan_id):
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    db.session.delete(plan)
+    db.session.commit()
+    return jsonify({'msg': 'Plan eliminado'}), 200
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
