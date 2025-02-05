@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "leaflet/dist/leaflet.css"; // Importar los estilos de Leaflet
+import "leaflet/dist/leaflet.css"; 
 import "../../styles/newPlan.css";
-import { Map, TileLayer, Marker, Popup } from "react-leaflet"; // Usamos Map de la versión 2.x
+import { Map, TileLayer, Marker, Popup } from "react-leaflet"; 
 import L from "leaflet";
 
 const NewPlan = () => {
@@ -18,12 +18,12 @@ const NewPlan = () => {
     endTime: "",
     location: "",
     category: "",
-    description: "", // Aquí añades el campo description
+    description: "", 
   });
 
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [coordinates, setCoordinates] = useState({
-    lat: 40.4168,  // Coordenadas iniciales (Madrid)
+    lat: 40.4168, 
     lng: -3.7038,
   });
   const [isEditing, setIsEditing] = useState({
@@ -34,7 +34,7 @@ const NewPlan = () => {
     endTime: false,
     location: false,
     category: false,
-    description: false, // Añadido el estado para "description"
+    description: false, 
   });
 
   const toggleEdit = (field) => {
@@ -193,7 +193,7 @@ const NewPlan = () => {
 
       <div style={{ backgroundColor: "#67ABB8", padding: "20px", borderRadius: "10px" }}>
         <form className="form mt-4">
-          {/* Campo Name */}
+          
           <div className="mb-3">
             <label htmlFor="name" className="form-label">
               Name
@@ -219,7 +219,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          {/* Campo Number of People */}
+          
           <div className="mb-3">
             <label htmlFor="numberOfPeople" className="form-label">
               Number of People
@@ -245,7 +245,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          {/* Campo Date */}
+          
           <div className="mb-3">
             <label htmlFor="date" className="form-label">
               Date
@@ -270,7 +270,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          {/* Campo Start Time */}
+          
           <div className="mb-3">
             <label htmlFor="startTime" className="form-label">
               Start Time
@@ -295,7 +295,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          {/* Campo End Time */}
+          
           <div className="mb-3">
             <label htmlFor="endTime" className="form-label">
               End Time
@@ -320,7 +320,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          {/* Campo Location */}
+          
           <div className="mb-3">
             <label htmlFor="location" className="form-label">
               Location
@@ -365,7 +365,7 @@ const NewPlan = () => {
             </ul>
           </div>
 
-          {/* Campo Description */}
+          
           <div className="mb-3">
             <label htmlFor="description" className="form-label">
               Description
@@ -391,7 +391,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          {/* Mapa */}
+         
           <div className="mb-3 newPlanMap">
             <Map
               center={[coordinates.lat, coordinates.lng]}
