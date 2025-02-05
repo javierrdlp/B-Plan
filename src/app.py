@@ -226,6 +226,15 @@ def get_plans():
     plans = Plan.query.all()
     return jsonify([plan.serialize() for plan in plans]), 200
 
+@app.route('/plans/<int:plan_id>', methods=['GET'])
+def get_single_plan(plan_id):
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    plan_serialized = plan.serialize()
+    plan_serialized['assistants'] = [assistant_plan.assistant.serialize() for assistant_plan in plan.assistant_plans]
+    return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
