@@ -2,14 +2,23 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import datetime
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db, User
+from api.models import db, User, Plan, Categories, UserPlan, AssistantPlan
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
+from flask_cors import CORS
+
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
+
+from flask_bcrypt import Bcrypt
 
 # from models import Person
 
@@ -19,6 +28,13 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT-KEY")
+jwt = JWTManager(app)
+
+bcrypt = Bcrypt(app)
+
+
+CORS(app)
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
@@ -81,11 +97,187 @@ def register():
         return jsonify({'msg': f'El correo {body["email"]} ya ha sido registrado'}), 401
     new_user = User()
     new_user.email = body['email']
-    new_user.password = body['password']
+    new_user.password = bcrypt.generate_password_hash(body['password']).decode('utf-8')
     new_user.name = body['name']
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'msg': 'Nuevo usuario creado con exito'}), 201
+
+@app.route('/login', methods=['POST'])
+def login():
+    body = request.get_json(silent=True)
+    if body is None:
+        return jsonify({'msg': 'Debes enviar información en el body: email y password'}), 400
+    if 'email' not in body:
+        return jsonify({'msg': 'El campo email es obligatorio'}), 400
+    if 'password' not in body:
+        return jsonify({'msg': 'El campo password es obligatorio'}), 400
+    user = User.query.filter_by(email=body['email']).first()
+    if user is None or not bcrypt.check_password_hash(user.password, body['password']):
+        return jsonify({'msg': 'Correo o contraseña inválidos'}), 401
+    access_token = create_access_token(identity=user.email)
+    return jsonify({'token': access_token}), 200
+
+@app.route('/private', methods=["GET"])
+@jwt_required()
+def protected():
+    # Access the identity of the current user with get_jwt_identity
+    current_user = get_jwt_identity()
+    return jsonify({'msg': 'ok', 'user': current_user}), 200
+
+@app.route('/user/profile', methods=['GET'])
+@jwt_required()
+def get_profile():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    return jsonify({'msg': 'ok', 'user': {'id': user.id, 'email': user.email, 'name': user.name}}), 200
+
+@app.route('/user/profile', methods=['PUT'])
+@jwt_required()
+def update_profile():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    data = request.get_json()
+    if 'name' in data: 
+        user.name = data['name']
+    if 'phone' in data:
+        user.phone = data['phone']
+    if 'description' in data:
+        user.description = data['description']
+    if 'address' in data:
+        user.address = data['address']
+    if 'birth' in data:
+        user.birth = data['birth']
+    if 'interests' in data:
+        user.interests = data['interests']
+    if 'image' in data:
+        user.image = data['image']
+
+    db.session.commit()
+
+    return jsonify({'msg': 'ok', 'user': {'id': user.id, 
+                                          'email': user.email, 
+                                          'name': user.name, 
+                                          'phone': user.phone,
+                                          'description': user.description, 
+                                          'address': user.address, 
+                                          'birth': user.birth.isoformat() if user.birth else None,
+                                          'interests': user.interests, 
+                                          'image': user.image, 
+                                          'subscription_date': user.subscription_date.isoformat() if user.subscription_date else None}}), 200
+
+@app.route('/user/profile', methods=['DELETE'])
+@jwt_required()
+def delete_profile():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    
+    # Eliminamos la asistencia del plan al eliminar el usuario
+    AssistantPlan.query.filter_by(user_id=user.id).delete()
+    
+    # Eliminamos los planes asociados al usuario
+    UserPlan.query.filter_by(user_id=user.id).delete()
+    
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'msg': 'Usuario eliminado'}), 200
+
+@app.route('/plans', methods=['POST'])
+def create_plan():
+    body = request.get_json(silent=True)
+    if body is None:
+        return jsonify({'msg': 'Debes añadir información para el plan'}), 400
+    if 'name' not in body:
+        return jsonify({'msg': 'El campo name es obligatorio'}), 400
+    if 'people' not in body:
+        return jsonify({'msg': 'El campo people es obligatorio'}), 400
+    if 'date' not in body:
+        return jsonify({'msg': 'El campo date es obligatorio'}), 400
+    if 'start_time' not in body:
+        return jsonify({'msg': 'El campo start_time es obligatorio'}), 400
+    if 'end_time' not in body:
+        return jsonify({'msg': 'El campo end_time es obligatorio'}), 400
+    if 'category_id' not in body:
+        return jsonify({'msg': 'El campo category_id es obligatorio'}), 400
+
+    new_plan = Plan(
+        name=body['name'],
+        people=body['people'],
+        date=body['date'],
+        start_time=body['start_time'],
+        end_time=body['end_time'],
+        longitude=body.get('longitude'),
+        latitude=body.get('latitude'),
+        category_id=body['category_id'],
+        image=body.get('image')
+    )
+    
+    db.session.add(new_plan)
+    db.session.commit()
+    return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 201
+
+@app.route('/plans', methods=['GET'])
+def get_plans():
+    plans = Plan.query.all()
+    return jsonify([plan.serialize() for plan in plans]), 200
+
+@app.route('/plans/<int:plan_id>', methods=['GET'])
+def get_single_plan(plan_id):
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    plan_serialized = plan.serialize()
+    plan_serialized['assistants'] = [assistant_plan.assistant.serialize() for assistant_plan in plan.assistant_plans]
+    return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
+
+@app.route('/plans/<int:plan_id>', methods=['PUT'])
+def put_plan(plan_id):
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    data = request.get_json()
+    if 'name' in data: 
+        plan.name = data['name']
+    # Condicional para si intentas modificar las personas por menos de las que hay ya apuntadas.
+    if 'people' in data:
+        active_users = len(plan.user_plans)
+        if data['people'] < active_users:
+            return jsonify({'msg': f'No puedes reducir la capacidad a menos de {active_users} personas porque ya hay {active_users} apuntadas.'}), 400
+        plan.people = data['people']
+    db.session.commit()
+    plan_serialized = plan.serialize()
+    plan_serialized['assistants'] = [assistant_plan.assistant.serialize() for assistant_plan in plan.assistant_plans]
+
+    return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
+
+@app.route('/plans/<int:plan_id>', methods=['DELETE'])
+def delete_plan(plan_id):
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    db.session.delete(plan)
+    db.session.commit()
+    return jsonify({'msg': 'Plan eliminado'}), 200
+
+@app.route('/plans/active', methods=['GET'])
+@jwt_required()
+def get_active_plans():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    today = datetime.date.today()
+    upcoming_plans = db.session.query(Plan).join(UserPlan).filter(UserPlan.user_id == user.id, Plan.date > today).all()
+    if not upcoming_plans:
+        return jsonify({'msg': 'El usuario no tiene planes activos'}), 404
+    return jsonify({'msg': 'ok', 'upcoming_plans': [plan.serialize() for plan in upcoming_plans]}), 200
+    
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
