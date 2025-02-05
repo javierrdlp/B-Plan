@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db, User, UserPlan, AssistantPlan
+from api.models import db, User, Plan, Categories, UserPlan, AssistantPlan
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -186,6 +186,41 @@ def delete_profile():
     db.session.delete(user)
     db.session.commit()
     return jsonify({'msg': 'Usuario eliminado'}), 200
+
+@app.route('/plans', methods=['POST'])
+def create_plan():
+    body = request.get_json(silent=True)
+    if body is None:
+        return jsonify({'msg': 'Debes añadir información para el plan'}), 400
+    if 'name' not in body:
+        return jsonify({'msg': 'El campo name es obligatorio'}), 400
+    if 'people' not in body:
+        return jsonify({'msg': 'El campo people es obligatorio'}), 400
+    if 'date' not in body:
+        return jsonify({'msg': 'El campo date es obligatorio'}), 400
+    if 'start_time' not in body:
+        return jsonify({'msg': 'El campo start_time es obligatorio'}), 400
+    if 'end_time' not in body:
+        return jsonify({'msg': 'El campo end_time es obligatorio'}), 400
+    if 'category_id' not in body:
+        return jsonify({'msg': 'El campo category_id es obligatorio'}), 400
+
+    new_plan = Plan(
+        name=body['name'],
+        people=body['people'],
+        date=body['date'],
+        start_time=body['start_time'],
+        end_time=body['end_time'],
+        longitude=body.get('longitude'),
+        latitude=body.get('latitude'),
+        category_id=body['category_id'],
+        image=body.get('image')
+    )
+    
+    db.session.add(new_plan)
+    db.session.commit()
+    return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 201
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
