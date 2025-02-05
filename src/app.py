@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db, User
+from api.models import db, User, UserPlan, AssistantPlan
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -168,6 +168,24 @@ def update_profile():
                                           'interests': user.interests, 
                                           'image': user.image, 
                                           'subscription_date': user.subscription_date.isoformat() if user.subscription_date else None}}), 200
+
+@app.route('/user/profile', methods=['DELETE'])
+@jwt_required()
+def delete_profile():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    
+    # Eliminamos la asistencia del plan al eliminar el usuario
+    AssistantPlan.query.filter_by(user_id=user.id).delete()
+    
+    # Eliminamos los planes asociados al usuario
+    UserPlan.query.filter_by(user_id=user.id).delete()
+    
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'msg': 'Usuario eliminado'}), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
