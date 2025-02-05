@@ -235,6 +235,26 @@ def get_single_plan(plan_id):
     plan_serialized['assistants'] = [assistant_plan.assistant.serialize() for assistant_plan in plan.assistant_plans]
     return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
 
+@app.route('/plans/<int:plan_id>', methods=['PUT'])
+def put_plan(plan_id):
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    data = request.get_json()
+    if 'name' in data: 
+        plan.name = data['name']
+    # Condicional para si intentas modificar las personas por menos de las que hay ya apuntadas.
+    if 'people' in data:
+        active_users = len(plan.user_plans)
+        if data['people'] < active_users:
+            return jsonify({'msg': f'No puedes reducir la capacidad a menos de {active_users} personas porque ya hay {active_users} apuntadas.'}), 400
+        plan.people = data['people']
+    db.session.commit()
+    plan_serialized = plan.serialize()
+    plan_serialized['assistants'] = [assistant_plan.assistant.serialize() for assistant_plan in plan.assistant_plans]
+
+    return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
