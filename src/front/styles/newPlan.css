@@ -1,0 +1,27 @@
+.btnSwap {
+    background-color: #F15B40;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50%;
+    font-size: 18px;
+    z-index: 1; 
+}
+.btnOptions{
+  background-color: #F15B40;
+    color: white;
+    border-radius: 15px;
+}
+.boxOptions{
+  background-color: #67ABB8;
+  border-radius: 15px;
+}
+.newPlanPicture{
+    border-radius: 15px;
+    border: 5px solid #262626; 
+    
+}  
+.newPlanMap {
+  height: 400px; 
+  width: 100%;
+}

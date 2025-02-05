@@ -10,6 +10,7 @@ import injectContext from "./store/appContext";
 import { Profile } from "./pages/profile";
 import { PlansHistory } from "./pages/plansHistory";
 import { ActivePlans } from "./pages/activePlans"; 
+import NewPlan from './pages/newPlan';
 
 
 import { Navbar } from "./component/navbar";
@@ -34,6 +35,7 @@ const Layout = () => {
                         <Route element={<Profile />} path="/profile" /> 
                         <Route path="/plans-history" element={<PlansHistory />} />
                         <Route path="/active-plans" element={<ActivePlans />} />
+                        <Route path="/new-plan" element={<NewPlan />} />
                         <Route element={<Demo />} path="/demo" />
                         <Route element={<Single />} path="/single/:theid" />
                         <Route element={<h1>Not found!</h1>} />

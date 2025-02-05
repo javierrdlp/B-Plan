@@ -156,8 +156,20 @@ export const Home = () => {
 				</div>
 			</div>
 			<p>
+
+        <Link to="/profile" className="btn btn-primary">Go to Profile</Link>
+		<Link to="/new-plan" className="btn btn-primary">
+    Go to New Plan
+</Link>
+
+      </p>
+		</div>
+
+  
+
 				<Link to="/profile" className="btn btn-primary">Go to Profile</Link>
 			</p>
 		</div>
+
 	);
 };
