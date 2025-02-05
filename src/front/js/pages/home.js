@@ -123,7 +123,7 @@ export const Home = () => {
 					</div>
 				</div>
 			</div>
-<div className="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModal" aria-hidden="true">
+			<div className="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModal" aria-hidden="true">
 				<div className="modal-dialog">
 					<div className="modal-content">
 						<img className="logo-modal" src={logoLetras} alt="Website Logo" />
@@ -155,10 +155,9 @@ export const Home = () => {
 					</div>
 				</div>
 			</div>
+			<p>
+				<Link to="/profile" className="btn btn-primary">Go to Profile</Link>
+			</p>
 		</div>
-
-  <p>
-        <Link to="/profile" className="btn btn-primary">Go to Profile</Link>
-      </p>
 	);
 };
