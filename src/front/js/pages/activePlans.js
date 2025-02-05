@@ -85,7 +85,7 @@ export const ActivePlans = () => {
   const groupedPlans = chunkPlans(activePlans, 4);
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4" style={{ height: "80vh"}}>
       
       <div
         id="profileBackground"

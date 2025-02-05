@@ -4,7 +4,7 @@ import "../../styles/footer.css";
 
 
 export const Footer = () => (
-	<footer className="footer mt-auto py-3 text-center">
+	<footer className="footer mt-5 py-3 text-center">
 		<div className="row">
 			<div className="col-4">
 				<img className="logo-letras" src={logoLetras} alt="Website Logo" />
