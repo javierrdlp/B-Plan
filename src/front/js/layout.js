@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ScrollToTop from "./component/scrollToTop";
 import { BackendURL } from "./component/backendURL";
@@ -24,6 +24,20 @@ const Layout = () => {
     const basename = process.env.BASENAME || "";
 
     if(!process.env.BACKEND_URL || process.env.BACKEND_URL == "") return <BackendURL/ >;
+    const [token, setToken] = useState(localStorage.getItem("token"));
+    useEffect(() => {        
+        const updateToken = () => {
+          setToken(localStorage.getItem("token"));
+        };    
+        
+        window.addEventListener("storage", updateToken);
+    
+        return () => {
+          window.removeEventListener("storage", updateToken);
+        };
+      }, []);
+
+    if(localStorage.getItem("token")){  
 
     return (
         <div>
@@ -45,6 +59,26 @@ const Layout = () => {
             </BrowserRouter>
         </div>
     );
+    }else{
+        return (
+            <div>
+                <BrowserRouter basename={basename}>
+                    <ScrollToTop>                        
+                        <Routes>
+                            <Route element={<Home />} path="/" />
+                            <Route element={<Profile />} path="/profile" /> 
+                            <Route path="/plans-history" element={<PlansHistory />} />
+                            <Route path="/active-plans" element={<ActivePlans />} />
+                            <Route element={<Demo />} path="/demo" />
+                            <Route element={<Single />} path="/single/:theid" />
+                            <Route element={<h1>Not found!</h1>} />
+                        </Routes>
+                        <Footer />
+                    </ScrollToTop>
+                </BrowserRouter>
+            </div>
+        );
+    }
 };
 
 export default injectContext(Layout);
