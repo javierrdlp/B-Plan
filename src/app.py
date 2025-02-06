@@ -299,6 +299,20 @@ def join_plan(plan_id):
     db.session.commit()
     return jsonify({'msg': 'Te has unido al plan con éxito', 'plan': plan.serialize()}), 200
 
+#Hablar con el grupo, hace falta el endpoint? Se puede hacer la logica directamente en la tabla
+@app.route('/plans/<int:plan_id>/status', methods=['PUT'])
+@jwt_required()
+def status_plan(plan_id):
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    current_time = datetime.utcnow()
+    if plan.end_time <= current_time:
+        plan.status = "closed"
+        db.session.commit()
+        return jsonify({'msg': 'El plan ha sido cerrado automáticamente'}), 200
+    return jsonify({'msg': f'El plan con id {plan_id} sigue abierto'}), 200
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
