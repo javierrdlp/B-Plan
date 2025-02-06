@@ -215,7 +215,8 @@ def create_plan():
         longitude=body.get('longitude'),
         latitude=body.get('latitude'),
         category_id=body['category_id'],
-        image=body.get('image')
+        image=body.get('image'),
+        status="open"
     )
     
     db.session.add(new_plan)
@@ -246,14 +247,13 @@ def put_plan(plan_id):
         plan.name = data['name']
     # Condicional para si intentas modificar las personas por menos de las que hay ya apuntadas.
     if 'people' in data:
-        active_users = len(plan.user_plans)
+        active_users = plan.people_active
         if data['people'] < active_users:
             return jsonify({'msg': f'No puedes reducir la capacidad a menos de {active_users} personas porque ya hay {active_users} apuntadas.'}), 400
         plan.people = data['people']
     db.session.commit()
     plan_serialized = plan.serialize()
     plan_serialized['assistants'] = [assistant_plan.assistant.serialize() for assistant_plan in plan.assistant_plans]
-
     return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
 
 @app.route('/plans/<int:plan_id>', methods=['DELETE'])
@@ -277,7 +277,27 @@ def get_active_plans():
     if not upcoming_plans:
         return jsonify({'msg': 'El usuario no tiene planes activos'}), 404
     return jsonify({'msg': 'ok', 'upcoming_plans': [plan.serialize() for plan in upcoming_plans]}), 200
-    
+
+@app.route('/plans/<int:plan_id>/join', methods=['POST'])
+@jwt_required()
+def join_plan(plan_id):
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    existing_join = UserPlan.query.filter_by(user_id=user.id, plan_id=plan.id).first()
+    if existing_join is not None:
+        return jsonify({'msg': 'Ya estás unido a este plan'}), 400
+    if plan.people_active >= plan.people:
+        return jsonify({'msg': 'El plan ya está lleno'}), 400
+    new_join = UserPlan(user_id=user.id, plan_id=plan.id)
+    db.session.add(new_join)
+    plan.people_active += 1
+    db.session.commit()
+    return jsonify({'msg': 'Te has unido al plan con éxito', 'plan': plan.serialize()}), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
