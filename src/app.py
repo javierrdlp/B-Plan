@@ -2,7 +2,8 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-import datetime
+from datetime import datetime
+from pytz import timezone
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -32,7 +33,6 @@ app.config["JWT_SECRET_KEY"] = os.getenv("JWT-KEY")
 jwt = JWTManager(app)
 
 bcrypt = Bcrypt(app)
-
 
 CORS(app)
 # database condiguration
@@ -299,6 +299,8 @@ def join_plan(plan_id):
     db.session.commit()
     return jsonify({'msg': 'Te has unido al plan con éxito', 'plan': plan.serialize()}), 200
 
+spain_tz = timezone('Europe/Madrid')
+
 #Hablar con el grupo, hace falta el endpoint? Se puede hacer la logica directamente en la tabla
 @app.route('/plans/<int:plan_id>/status', methods=['PUT'])
 @jwt_required()
@@ -306,12 +308,24 @@ def status_plan(plan_id):
     plan = Plan.query.get(plan_id)
     if plan is None:
         return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
-    current_time = datetime.utcnow()
+    current_time = datetime.now(spain_tz).time()
     if plan.end_time <= current_time:
         plan.status = "closed"
         db.session.commit()
         return jsonify({'msg': 'El plan ha sido cerrado automáticamente'}), 200
     return jsonify({'msg': f'El plan con id {plan_id} sigue abierto'}), 200
+
+@app.route('/plans/history', methods=['GET'])
+@jwt_required()
+def plan_history():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    plans = Plan.query.join(UserPlan).filter(UserPlan.user_id == user.id, Plan.status == "closed").all()
+    if not plans:
+        return jsonify({'msg': 'No hay planes cerrados en el historial del usuario'}), 404
+    return jsonify({'msg': 'ok', 'plans': [plan.serialize() for plan in plans]}), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
