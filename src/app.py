@@ -296,12 +296,13 @@ def join_plan(plan_id):
     new_join = UserPlan(user_id=user.id, plan_id=plan.id)
     db.session.add(new_join)
     plan.people_active += 1
+    if plan.people_active >= plan.people:
+        plan.status = "full"
     db.session.commit()
     return jsonify({'msg': 'Te has unido al plan con éxito', 'plan': plan.serialize()}), 200
 
 spain_tz = timezone('Europe/Madrid')
 
-#Hablar con el grupo, hace falta el endpoint? Se puede hacer la logica directamente en la tabla
 @app.route('/plans/<int:plan_id>/status', methods=['PUT'])
 @jwt_required()
 def status_plan(plan_id):
@@ -311,9 +312,12 @@ def status_plan(plan_id):
     current_time = datetime.now(spain_tz).time()
     if plan.end_time <= current_time:
         plan.status = "closed"
-        db.session.commit()
-        return jsonify({'msg': 'El plan ha sido cerrado automáticamente'}), 200
-    return jsonify({'msg': f'El plan con id {plan_id} sigue abierto'}), 200
+    elif plan.people_active >= plan.people:
+        plan.status = "full"
+    else:
+        plan.status = "open"
+    db.session.commit()
+    return jsonify({'msg': f'El estado del plan con id {plan_id} ahora esta {plan.status}}'), 200
 
 @app.route('/plans/history', methods=['GET'])
 @jwt_required()
