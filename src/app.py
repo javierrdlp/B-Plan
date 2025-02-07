@@ -288,6 +288,8 @@ def join_plan(plan_id):
     plan = Plan.query.get(plan_id)
     if plan is None:
         return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    if plan.status == "closed":
+        return jsonify({'msg': 'No puedes unirte a un plan que está cerrado'}), 400
     existing_join = UserPlan.query.filter_by(user_id=user.id, plan_id=plan.id).first()
     if existing_join is not None:
         return jsonify({'msg': 'Ya estás unido a este plan'}), 400
@@ -300,6 +302,26 @@ def join_plan(plan_id):
         plan.status = "full"
     db.session.commit()
     return jsonify({'msg': 'Te has unido al plan con éxito', 'plan': plan.serialize()}), 200
+
+@app.route('/plans/<int:plan_id>/leave', methods=['POST'])
+@jwt_required()
+def leave_plan(plan_id):
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    user_plan = UserPlan.query.filter_by(user_id=user.id, plan_id=plan.id).first()
+    if user_plan is None:
+        return jsonify({'msg': 'No estás unido a este plan'}), 400
+    db.session.delete(user_plan)
+    plan.people_active -= 1
+    if plan.status == "full" and plan.people_active < plan.people:
+        plan.status = "open"
+    db.session.commit()
+    return jsonify({'msg': 'Has salido del plan:', 'plan': plan.serialize()}), 200
 
 spain_tz = timezone('Europe/Madrid')
 
@@ -317,7 +339,7 @@ def status_plan(plan_id):
     else:
         plan.status = "open"
     db.session.commit()
-    return jsonify({'msg': f'El estado del plan con id {plan_id} ahora esta {plan.status}}'), 200
+    return jsonify({'msg': f'El estado del plan con id {plan_id} ahora esta {plan.status}'}), 200
 
 @app.route('/plans/history', methods=['GET'])
 @jwt_required()
