@@ -353,6 +353,11 @@ def plan_history():
         return jsonify({'msg': 'No hay planes cerrados en el historial del usuario'}), 404
     return jsonify({'msg': 'ok', 'plans': [plan.serialize() for plan in plans]}), 200
 
+@app.route('/categories', methods=['GET'])
+def get_categories():
+    categories = Categories.query.all()
+    return jsonify([category.serialize() for category in categories]), 200
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
