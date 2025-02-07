@@ -358,6 +358,13 @@ def get_categories():
     categories = Categories.query.all()
     return jsonify([category.serialize() for category in categories]), 200
 
+@app.route('/categories/<int:categories_id>', methods=['GET'])
+def get_categories_id(categories_id):
+    category = Categories.query.get(categories_id)
+    if category is None:
+        return jsonify({'msg': f'La categoria con id {categories_id} no existe'}), 404
+    return jsonify({'category': category.serialize()}), 200
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
