@@ -4,7 +4,7 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 import os
 from datetime import datetime
 from pytz import timezone
-from flask import Flask, request, jsonify, url_for, send_from_directory
+from flask import Flask, request, jsonify, url_for, send_from_directory, render_template
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
@@ -32,12 +32,13 @@ app = Flask(__name__)
 
 app.config.update(dict(
     DEBUG = False,
-    MAIL_SERVER = 'smpt.gmail.com',
-    MAIL_PORT = 587,
-    MAIL_USE_TL = True,
+    MAIL_SERVER = 'smtp.gmail.com',
+    MAIL_PORT = 587, 
+    MAIL_USE_TLS = True,
     MAIL_USE_SSL = False,
     MAIL_USERNAME = 'bplan4geeks@gmail.com',
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD'),
+    MAIL_DEFAULT_SENDER = 'bplan4geeks@gmail.com'
 ))
 
 mail = Mail(app)
@@ -99,7 +100,7 @@ def serve_any_other_file(path):
 def register():
     body = request.get_json(silent=True)
     if body == None:
-        return jsonify({'msg': 'Debes enviar la información el body: email y password'})
+        return jsonify({'msg': 'Debes enviar la información en el body: email y password'}), 400
     if 'email' not in body:
         return jsonify({'msg': 'El campo email es obligatorio'}), 400
     if 'password' not in body:
@@ -115,7 +116,16 @@ def register():
     new_user.name = body['name']
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({'msg': 'Nuevo usuario creado con exito'}), 201
+    html_content = render_template('emails/welcome_email.html', name=body['name'])
+    msg = Message(
+        subject='Bienvenido a B PLAN',
+        sender='bplan4geeks@gmail.com',
+        recipients=[body['email']],
+    )
+    msg.replay_to = 'bplan4geeks@gmail.com'
+    msg.html = html_content
+    mail.send(msg)
+    return jsonify({'msg': 'Nuevo usuario creado con éxito y correo de bienvenida enviado'}), 200
 
 @app.route('/login', methods=['POST'])
 def login():
