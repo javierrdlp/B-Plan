@@ -20,7 +20,7 @@ export const Footer = () => (
 			<i className="fa-solid fa-envelope fa-2xl"></i>
 			</div>	
 		</div>
-		<div className="row mb-3" style={{"margin-top": "-4rem" }}>
+		<div className="row mb-3" style={{"marginTop": "-4rem" }}>
 			<div className="col-4">
 				<p>Álex Pérez</p>	
 				<a className="link-dark" href="https://github.com/alex5perez">			

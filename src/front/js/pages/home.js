@@ -161,14 +161,8 @@ export const Home = () => {
 		<Link to="/new-plan" className="btn btn-primary">
     Go to New Plan
 </Link>
-
+git a
       </p>
-		</div>
-
-  
-
-				<Link to="/profile" className="btn btn-primary">Go to Profile</Link>
-			</p>
 		</div>
 
 	);
