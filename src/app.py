@@ -19,6 +19,8 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 
+from flask_mail import Mail, Message
+
 from flask_bcrypt import Bcrypt
 
 # from models import Person
@@ -27,6 +29,18 @@ ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../public/')
 app = Flask(__name__)
+
+app.config.update(dict(
+    DEBUG = False,
+    MAIL_SERVER = 'smpt.gmail.com',
+    MAIL_PORT = 587,
+    MAIL_USE_TL = True,
+    MAIL_USE_SSL = False,
+    MAIL_USERNAME = 'bplan4geeks@gmail.com',
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+))
+
+mail = Mail(app)
 app.url_map.strict_slashes = False
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT-KEY")
@@ -364,6 +378,17 @@ def get_categories_id(categories_id):
     if category is None:
         return jsonify({'msg': f'La categoria con id {categories_id} no existe'}), 404
     return jsonify({'category': category.serialize()}), 200
+
+@app.route('/send_mail', methods={'GET'})
+def send_mail():
+    msg = Message(
+        subject='Test mail',
+        sender='bplan4geeks@gmail.com',
+        recipients={'bplan4geeks@gmail.com'},
+    )
+    msg.html = "<h1>Te envié este correo desde flask</h1>"
+    mail.send(msg)
+    return jsonify({'msg': 'Correo enviado!!!'})
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
