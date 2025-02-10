@@ -213,7 +213,12 @@ def delete_profile():
     return jsonify({'msg': 'Usuario eliminado'}), 200
 
 @app.route('/plans', methods=['POST'])
+@jwt_required()
 def create_plan():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
     body = request.get_json(silent=True)
     if body is None:
         return jsonify({'msg': 'Debes añadir información para el plan'}), 400
@@ -229,7 +234,6 @@ def create_plan():
         return jsonify({'msg': 'El campo end_time es obligatorio'}), 400
     if 'category_id' not in body:
         return jsonify({'msg': 'El campo category_id es obligatorio'}), 400
-
     new_plan = Plan(
         name=body['name'],
         people=body['people'],
@@ -240,12 +244,11 @@ def create_plan():
         latitude=body.get('latitude'),
         category_id=body['category_id'],
         image=body.get('image'),
-        status="open"
-    )
-    
+        status="open",
+        user_id=user.id)
     db.session.add(new_plan)
     db.session.commit()
-    return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 201
+    return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 200
 
 @app.route('/plans', methods=['GET'])
 def get_plans():
@@ -325,6 +328,16 @@ def join_plan(plan_id):
     if plan.people_active >= plan.people:
         plan.status = "full"
     db.session.commit()
+    plan_creator = User.query.get(plan.user_id)
+    if plan_creator and plan_creator.email != user_email:
+        html_content = render_template('emails/join_plan.html', plan_name=plan.name, joiner_name=user.email)
+        msg = Message(
+            subject=f'Alguien se ha unido a tu plan: {plan.name}',
+            sender='bplan4geeks@gmail.com',
+            recipients=[plan_creator.email],
+        )
+        msg.html = html_content
+        mail.send(msg)
     return jsonify({'msg': 'Te has unido al plan con éxito', 'plan': plan.serialize()}), 200
 
 @app.route('/plans/<int:plan_id>/leave', methods=['POST'])
