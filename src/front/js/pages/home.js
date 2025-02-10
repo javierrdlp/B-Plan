@@ -161,7 +161,7 @@ export const Home = () => {
 		<Link to="/new-plan" className="btn btn-primary">
     Go to New Plan
 </Link>
-git a
+
       </p>
 		</div>
 
