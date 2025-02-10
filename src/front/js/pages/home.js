@@ -165,11 +165,5 @@ export const Home = () => {
       </p>
 		</div>
 
-  
-
-				<Link to="/profile" className="btn btn-primary">Go to Profile</Link>
-			</p>
-		</div>
-
 	);
 };
