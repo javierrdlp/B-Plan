@@ -1,13 +1,13 @@
 import React, { Component } from "react";
 import logoLetras from "../../img/logo_letras.png"
-import "../../styles/footer.css";
+
 
 
 export const Footer = () => (
-	<footer className="footer mt-5 py-3 text-center">
-		<div className="row">
+	<footer className="footer mt-5 py-3 text-center" style={{backgroundColor: "#67ABB8"}}>
+		<div className="row mb-5">
 			<div className="col-4">
-				<img className="logo-letras" src={logoLetras} alt="Website Logo" />
+				<img className="logo-letras" src={logoLetras} alt="Website Logo" style={{ height: "40%"}} />
 			</div>
 			<div className="col-4">
 			<p className="mt-3 fs-5">Get connected with us on social networks:</p>
@@ -20,7 +20,7 @@ export const Footer = () => (
 			<i className="fa-solid fa-envelope fa-2xl"></i>
 			</div>	
 		</div>
-		<div className="row mb-3" style={{"marginTop": "-4rem" }}>
+		<div className="row mb-3" style={{marginTop: "-4rem" }}>
 			<div className="col-4">
 				<p>Álex Pérez</p>	
 				<a className="link-dark" href="https://github.com/alex5perez">			

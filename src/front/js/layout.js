@@ -4,6 +4,7 @@ import ScrollToTop from "./component/scrollToTop";
 import { BackendURL } from "./component/backendURL";
 
 import { Home } from "./pages/home";
+import { LogedHome } from "./pages/logedHome";
 import { Demo } from "./pages/demo";
 import { Single } from "./pages/single";
 import injectContext from "./store/appContext";
@@ -65,6 +66,7 @@ const Layout = () => {
                     <Navbar />
                     <Routes>
                         <Route element={<Home />} path="/" />
+                        <Route element={<LogedHome />} path="/loged-home" />
                         <Route element={<Profile />} path="/profile" /> 
                         <Route path="/plans-history" element={<PlansHistory />} />
                         <Route path="/active-plans" element={<ActivePlans />} />
@@ -85,15 +87,17 @@ const Layout = () => {
                 <BrowserRouter basename={basename}>
                     <ScrollToTop>                        
                         <Routes>
-                            <Route element={<Home />} path="/" />
-                            <Route element={<Profile />} path="/profile" /> 
-                            <Route path="/plans-history" element={<PlansHistory />} />
-                            <Route path="/active-plans" element={<ActivePlans />} />
-                            <Route path="/new-plan" element={<NewPlan />} />
-                            <Route path="/join-plan" element={<JoinPlan />} />
-                            <Route element={<Demo />} path="/demo" />
-                            <Route element={<Single />} path="/single/:theid" />
-                            <Route element={<h1>Not found!</h1>} />
+
+                        <Route element={<Home />} path="/" />
+                        <Route element={<LogedHome />} path="/loged-home" />
+                        <Route element={<Profile />} path="/profile" /> 
+                        <Route path="/plans-history" element={<PlansHistory />} />
+                        <Route path="/active-plans" element={<ActivePlans />} />
+                        <Route path="/new-plan" element={<NewPlan />} />
+                        <Route path="/join-plan" element={<JoinPlan />} />
+                        <Route element={<Demo />} path="/demo" />
+                        <Route element={<Single />} path="/single/:theid" />
+                        <Route element={<h1>Not found!</h1>} />
                         </Routes>
                         <Footer />
                     </ScrollToTop>
