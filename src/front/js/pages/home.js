@@ -12,8 +12,8 @@ import ReviewCards from "../component/reviewCard";
 
 
 export const Home = () => {
-	const { store, actions } = useContext(Context);
-	let data = [
+	
+	let reviewData = [
 		{
 			title: "It was very easy to meet with new people!",
 			description: "It's a user-friendly website to make plans and to meet new friends.",
@@ -87,7 +87,7 @@ export const Home = () => {
 			</div>
 			<div className="row ">
 				<div className="col-12 d-flex justify-content-around">
-					{data.map((value, index) => {
+					{reviewData.map((value, index) => {
 						return <ReviewCards key={index} title={value.title} description={value.description} imageUrl={value.imageUrl} />
 					})}
 				</div>
@@ -157,17 +157,11 @@ export const Home = () => {
 			</div>
 			<p>
 
-        <Link to="/profile" className="btn btn-primary">Go to Profile</Link>
-		<Link to="/new-plan" className="btn btn-primary">
-    Go to New Plan
-</Link>
-
-      </p>
-		</div>
-
-  
-
 				<Link to="/profile" className="btn btn-primary">Go to Profile</Link>
+				<Link to="/new-plan" className="btn btn-primary">
+					Go to New Plan
+				</Link>
+				<Link to="/loged-home" className="btn btn-primary">Go to LogedHome</Link>
 			</p>
 		</div>
 
