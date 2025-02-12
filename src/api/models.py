@@ -16,6 +16,7 @@ class User(db.Model):
     image = db.Column(db.String(255), nullable=True)
     subscription_date = db.Column(db.Date, nullable=True)
 
+    plans = db.relationship('Plan', back_populates='user')
     user_plans = db.relationship('UserPlan', back_populates='user')
     assistant_plans = db.relationship('AssistantPlan', back_populates='user')
 
@@ -68,8 +69,10 @@ class Plan(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     image = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(50), nullable=False, default="open")
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     category = db.relationship('Categories', back_populates='plans')
+    user = db.relationship('User', back_populates='plans')
     user_plans = db.relationship('UserPlan', back_populates='plan')
     assistant_plans = db.relationship('AssistantPlan', back_populates='plan')
 

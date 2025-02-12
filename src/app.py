@@ -4,7 +4,7 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 import os
 from datetime import datetime
 from pytz import timezone
-from flask import Flask, request, jsonify, url_for, send_from_directory
+from flask import Flask, request, jsonify, url_for, send_from_directory, render_template
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
@@ -19,6 +19,8 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 
+from flask_mail import Mail, Message
+
 from flask_bcrypt import Bcrypt
 
 # from models import Person
@@ -27,6 +29,19 @@ ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../public/')
 app = Flask(__name__)
+
+app.config.update(dict(
+    DEBUG = False,
+    MAIL_SERVER = 'smtp.gmail.com',
+    MAIL_PORT = 587, 
+    MAIL_USE_TLS = True,
+    MAIL_USE_SSL = False,
+    MAIL_USERNAME = 'bplan4geeks@gmail.com',
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD'),
+    MAIL_DEFAULT_SENDER = 'bplan4geeks@gmail.com'
+))
+
+mail = Mail(app)
 app.url_map.strict_slashes = False
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT-KEY")
@@ -85,7 +100,7 @@ def serve_any_other_file(path):
 def register():
     body = request.get_json(silent=True)
     if body == None:
-        return jsonify({'msg': 'Debes enviar la información el body: email y password'})
+        return jsonify({'msg': 'Debes enviar la información en el body: email y password'}), 400
     if 'email' not in body:
         return jsonify({'msg': 'El campo email es obligatorio'}), 400
     if 'password' not in body:
@@ -101,7 +116,16 @@ def register():
     new_user.name = body['name']
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({'msg': 'Nuevo usuario creado con exito'}), 201
+    html_content = render_template('emails/welcome_email.html', name=body['name'])
+    msg = Message(
+        subject='Bienvenido a B PLAN',
+        sender='bplan4geeks@gmail.com',
+        recipients=[body['email']],
+    )
+    msg.replay_to = 'bplan4geeks@gmail.com'
+    msg.html = html_content
+    mail.send(msg)
+    return jsonify({'msg': 'Nuevo usuario creado con éxito y correo de bienvenida enviado'}), 200
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -189,7 +213,12 @@ def delete_profile():
     return jsonify({'msg': 'Usuario eliminado'}), 200
 
 @app.route('/plans', methods=['POST'])
+@jwt_required()
 def create_plan():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
     body = request.get_json(silent=True)
     if body is None:
         return jsonify({'msg': 'Debes añadir información para el plan'}), 400
@@ -205,7 +234,6 @@ def create_plan():
         return jsonify({'msg': 'El campo end_time es obligatorio'}), 400
     if 'category_id' not in body:
         return jsonify({'msg': 'El campo category_id es obligatorio'}), 400
-
     new_plan = Plan(
         name=body['name'],
         people=body['people'],
@@ -216,12 +244,11 @@ def create_plan():
         latitude=body.get('latitude'),
         category_id=body['category_id'],
         image=body.get('image'),
-        status="open"
-    )
-    
+        status="open",
+        user_id=user.id)
     db.session.add(new_plan)
     db.session.commit()
-    return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 201
+    return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 200
 
 @app.route('/plans', methods=['GET'])
 def get_plans():
@@ -301,6 +328,16 @@ def join_plan(plan_id):
     if plan.people_active >= plan.people:
         plan.status = "full"
     db.session.commit()
+    plan_creator = User.query.get(plan.user_id)
+    if plan_creator and plan_creator.email != user_email:
+        html_content = render_template('emails/join_plan.html', plan_name=plan.name, joiner_name=user.email)
+        msg = Message(
+            subject=f'Alguien se ha unido a tu plan: {plan.name}',
+            sender='bplan4geeks@gmail.com',
+            recipients=[plan_creator.email],
+        )
+        msg.html = html_content
+        mail.send(msg)
     return jsonify({'msg': 'Te has unido al plan con éxito', 'plan': plan.serialize()}), 200
 
 @app.route('/plans/<int:plan_id>/leave', methods=['POST'])
@@ -352,6 +389,29 @@ def plan_history():
     if not plans:
         return jsonify({'msg': 'No hay planes cerrados en el historial del usuario'}), 404
     return jsonify({'msg': 'ok', 'plans': [plan.serialize() for plan in plans]}), 200
+
+@app.route('/categories', methods=['GET'])
+def get_categories():
+    categories = Categories.query.all()
+    return jsonify([category.serialize() for category in categories]), 200
+
+@app.route('/categories/<int:categories_id>', methods=['GET'])
+def get_categories_id(categories_id):
+    category = Categories.query.get(categories_id)
+    if category is None:
+        return jsonify({'msg': f'La categoria con id {categories_id} no existe'}), 404
+    return jsonify({'category': category.serialize()}), 200
+
+@app.route('/send_mail', methods={'GET'})
+def send_mail():
+    msg = Message(
+        subject='Test mail',
+        sender='bplan4geeks@gmail.com',
+        recipients={'bplan4geeks@gmail.com'},
+    )
+    msg.html = "<h1>Te envié este correo desde flask</h1>"
+    mail.send(msg)
+    return jsonify({'msg': 'Correo enviado!!!'})
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

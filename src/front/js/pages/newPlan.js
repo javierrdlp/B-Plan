@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import "../../styles/newPlan.css";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet"; 
 import L from "leaflet";
+import { useNavigate } from "react-router-dom";
 
 const NewPlan = () => {
   const [selectedImg, setSelectedImg] = useState(
@@ -20,7 +21,7 @@ const NewPlan = () => {
     category: "",
     description: "", 
   });
-
+  
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [coordinates, setCoordinates] = useState({
     lat: 40.4168, 
@@ -36,7 +37,7 @@ const NewPlan = () => {
     category: false,
     description: false, 
   });
-
+  const navigate = useNavigate();
   const toggleEdit = (field) => {
     setIsEditing((prev) => ({
       ...prev,
@@ -118,7 +119,13 @@ const NewPlan = () => {
       setLocationSuggestions([]);
     }
   };
-
+  const handleSaveChanges = () => {
+   
+    console.log("Plan saved", formData);
+    
+   
+    navigate("/"); 
+  };
   return (
     <div className="container mt-4">
       <div
@@ -409,7 +416,7 @@ const NewPlan = () => {
           </div>
         </form>
       </div>
-      <button type="submit" className="btnProfile w-100 mt-3">Save Changes</button>
+      <button type="submit" className="btnProfile w-100 mt-3"  onClick={handleSaveChanges}>Save Changes</button>
     </div>
   );
 };

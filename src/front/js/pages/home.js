@@ -156,7 +156,6 @@ export const Home = () => {
 				</div>
 			</div>
 			<p>
-
 				<Link to="/profile" className="btn btn-primary">Go to Profile</Link>
 				<Link to="/new-plan" className="btn btn-primary">
 					Go to New Plan
@@ -164,6 +163,5 @@ export const Home = () => {
 				<Link to="/loged-home" className="btn btn-primary">Go to LogedHome</Link>
 			</p>
 		</div>
-
 	);
 };
