@@ -38,6 +38,7 @@ export const Profile = () => {
   };
 
   useEffect(() => {
+    console.log("Profile component mounted");
     document.title = "Profile";
   }, []);
 
@@ -71,6 +72,35 @@ export const Profile = () => {
     interests: false,
   });
 
+  useEffect(() => {
+    
+    if (store.user) {
+      setFormData({
+        name: store.user.name,
+        email: store.user.email,
+        phone: store.user.phone,
+        address: store.user.address,
+        dob: store.user.dob,
+        description: store.user.description,
+        interests: store.user.interests,
+      });
+    } else {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      console.log("User data from store: ", store.user);
+      if (storedUser) {
+        setFormData({
+          name: storedUser.name,
+          email: storedUser.email,
+          phone: storedUser.phone,
+          address: storedUser.address,
+          dob: storedUser.dob,
+          description: storedUser.description,
+          interests: storedUser.interests,
+        });
+      }
+    }
+  }, [store.user]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -98,6 +128,26 @@ export const Profile = () => {
     if (location.pathname !== "/profile") {
       navigate("/profile");
     }
+  };
+
+  
+  useEffect(() => {
+    
+    const token = store.token || localStorage.getItem('token');
+    if (!token) {
+      console.log("No token found, redirecting to login...");
+      navigate('/'); 
+    } else {
+      console.log("Token encontrado en Profile:", token);
+      
+    }
+  }, [store.token, navigate]);
+
+  const handleSaveChanges = () => {
+    
+    actions.saveProfile(formData);
+    
+    navigate("/home");
   };
 
   return (
@@ -268,44 +318,19 @@ export const Profile = () => {
           </div>
 
           <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              Password
-            </label>
-            <div className="input-group">
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                disabled={!isEditing.password}
-                placeholder="Your password"
-              />
-              <span
-                className="input-group-text"
-                onClick={() => toggleEdit("password")}
-                style={{ cursor: "pointer" }}
-              >
-                <i className="fa-solid fa-pencil"></i>
-              </span>
-            </div>
-          </div>
-
-          <div className="mb-3">
             <label htmlFor="phone" className="form-label">
               Phone
             </label>
             <div className="input-group">
               <input
-                type="text"
+                type="tel"
                 className="form-control"
                 id="phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
                 disabled={!isEditing.phone}
-                placeholder="Your phone"
+                placeholder="Your phone number"
               />
               <span
                 className="input-group-text"
@@ -375,10 +400,11 @@ export const Profile = () => {
                 className="form-control"
                 id="description"
                 name="description"
+                rows="3"
                 value={formData.description}
                 onChange={handleInputChange}
                 disabled={!isEditing.description}
-                placeholder="Your description"
+                placeholder="Describe yourself"
               />
               <span
                 className="input-group-text"
@@ -395,7 +421,8 @@ export const Profile = () => {
               Interests
             </label>
             <div className="input-group">
-              <textarea
+              <input
+                type="text"
                 className="form-control"
                 id="interests"
                 name="interests"
@@ -413,10 +440,10 @@ export const Profile = () => {
               </span>
             </div>
           </div>
+
         </form>
       </div>
-
-      <button type="submit" className="btnProfile w-100 mt-3">Save Changes</button>
+      <button type="submit" className="btnProfile w-100 mt-3"  onClick={handleSaveChanges}>Save Changes</button>
     </div>
   );
 };
