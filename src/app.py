@@ -115,7 +115,9 @@ def register():
     new_user.name = body['name']
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({'msg': 'Nuevo usuario creado con exito'}), 201
+    access_token = create_access_token(identity=new_user.email)
+    return jsonify({'msg': 'Nuevo usuario creado con éxito', 'token': access_token}), 201
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -135,7 +137,7 @@ def login():
 @app.route('/private', methods=["GET"])
 @jwt_required()
 def protected():
-    # Access the identity of the current user with get_jwt_identity
+    
     current_user = get_jwt_identity()
     return jsonify({'msg': 'ok', 'user': current_user}), 200
 
@@ -192,10 +194,10 @@ def delete_profile():
     if user is None:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
     
-    # Eliminamos la asistencia del plan al eliminar el usuario
+    
     AssistantPlan.query.filter_by(user_id=user.id).delete()
     
-    # Eliminamos los planes asociados al usuario
+   
     UserPlan.query.filter_by(user_id=user.id).delete()
     
     db.session.delete(user)
@@ -259,7 +261,7 @@ def put_plan(plan_id):
     data = request.get_json()
     if 'name' in data: 
         plan.name = data['name']
-    # Condicional para si intentas modificar las personas por menos de las que hay ya apuntadas.
+    
     if 'people' in data:
         active_users = plan.people_active
         if data['people'] < active_users:
@@ -389,6 +391,42 @@ def send_mail():
     msg.html = "<h1>Te envié este correo desde flask</h1>"
     mail.send(msg)
     return jsonify({'msg': 'Correo enviado!!!'})
+
+from flask import request, jsonify
+from werkzeug.utils import secure_filename
+import os
+
+@app.route('/api/uploadProfileImage', methods=['POST'])
+@jwt_required()
+def upload_profile_image():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+
+    # Verificar si la solicitud tiene un archivo
+    if 'file' not in request.files:
+        return jsonify({'msg': 'No se adjuntó ninguna imagen'}), 400
+
+    file = request.files['file']
+    
+    # Si no hay archivo, se retorna un error
+    if file.filename == '':
+        return jsonify({'msg': 'No se adjuntó ninguna imagen'}), 400
+
+    # Guardar la imagen con un nombre seguro
+    filename = secure_filename(file.filename)
+    filepath = os.path.join('uploads', filename)
+    
+    file.save(filepath)
+    
+    # Actualizar la imagen de perfil del usuario
+    user.image = filepath
+    db.session.commit()
+
+    return jsonify({'msg': 'Imagen subida correctamente', 'image_url': filepath}), 200
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
