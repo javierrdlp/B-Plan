@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "leaflet/dist/leaflet.css"; 
+import "leaflet/dist/leaflet.css";
 import "../../styles/newPlan.css";
-import { Map, TileLayer, Marker, Popup } from "react-leaflet"; 
+import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useNavigate } from "react-router-dom";
+import { Context } from "../store/appContext";
 
 const NewPlan = () => {
+  const { store, actions } = useContext(Context);
   const [selectedImg, setSelectedImg] = useState(
     "https://i0.wp.com/eltiempolatino.com/wp-content/uploads/2022/08/cine.jpg?fit=1200%2C613&ssl=1"
   );
@@ -19,12 +21,16 @@ const NewPlan = () => {
     endTime: "",
     location: "",
     category: "",
-    description: "", 
+    description: "",
   });
-  
+
+  useEffect(() => {
+    actions.getCategories();
+  }, []);
+
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [coordinates, setCoordinates] = useState({
-    lat: 40.4168, 
+    lat: 40.4168,
     lng: -3.7038,
   });
   const [isEditing, setIsEditing] = useState({
@@ -35,7 +41,7 @@ const NewPlan = () => {
     endTime: false,
     location: false,
     category: false,
-    description: false, 
+    description: false,
   });
   const navigate = useNavigate();
   const toggleEdit = (field) => {
@@ -119,12 +125,25 @@ const NewPlan = () => {
       setLocationSuggestions([]);
     }
   };
-  const handleSaveChanges = () => {
-   
-    console.log("Plan saved", formData);
-    
-   
-    navigate("/"); 
+  const handleSaveChanges = async () => {
+    const planData = {
+      name: formData.name,
+      people: formData.numberOfPeople,
+      date: formData.date,
+      start_time: formData.startTime,
+      end_time: formData.endTime,
+      latitude: coordinates.lat,
+      longitude: coordinates.lng,
+      category_id: formData.category,
+      image: selectedImg,
+    };
+
+    try {
+      await actions.createPlan(planData);
+      navigate("/");
+    } catch (error) {
+      console.error("Error al crear el plan:", error);
+    }
   };
   return (
     <div className="container mt-4">
@@ -161,6 +180,7 @@ const NewPlan = () => {
             }}
           >
             <div className="d-flex flex-column">
+            
               <button
                 className="btnOptions mb-2"
                 onClick={() => handleImageSelect("Shows")}
@@ -183,7 +203,7 @@ const NewPlan = () => {
                 className="btnOptions mb-2"
                 onClick={() => handleImageSelect("Sports")}
               >
-                  Sports
+                Sports
               </button>
               <button
                 className="btnOptions mb-2"
@@ -200,7 +220,7 @@ const NewPlan = () => {
 
       <div style={{ backgroundColor: "#67ABB8", padding: "20px", borderRadius: "10px" }}>
         <form className="form mt-4">
-          
+
           <div className="mb-3">
             <label htmlFor="name" className="form-label">
               Name
@@ -226,7 +246,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          
+
           <div className="mb-3">
             <label htmlFor="numberOfPeople" className="form-label">
               Number of People
@@ -252,7 +272,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          
+
           <div className="mb-3">
             <label htmlFor="date" className="form-label">
               Date
@@ -277,7 +297,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          
+
           <div className="mb-3">
             <label htmlFor="startTime" className="form-label">
               Start Time
@@ -302,7 +322,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          
+
           <div className="mb-3">
             <label htmlFor="endTime" className="form-label">
               End Time
@@ -327,7 +347,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-          
+
           <div className="mb-3">
             <label htmlFor="location" className="form-label">
               Location
@@ -372,7 +392,7 @@ const NewPlan = () => {
             </ul>
           </div>
 
-          
+
           <div className="mb-3">
             <label htmlFor="description" className="form-label">
               Description
@@ -398,7 +418,7 @@ const NewPlan = () => {
             </div>
           </div>
 
-         
+
           <div className="mb-3 newPlanMap">
             <Map
               center={[coordinates.lat, coordinates.lng]}
@@ -416,7 +436,7 @@ const NewPlan = () => {
           </div>
         </form>
       </div>
-      <button type="submit" className="btnProfile w-100 mt-3"  onClick={handleSaveChanges}>Save Changes</button>
+      <button type="submit" className="btnProfile w-100 mt-3" onClick={handleSaveChanges}>Save Changes</button>
     </div>
   );
 };
