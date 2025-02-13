@@ -1,0 +1,45 @@
+
+
+#create-plan-button{
+    height: 100px;
+    width: 300px;
+    font-size: 200%;
+    background-color: #F15B40 !important;
+}
+
+#find-plan-button{
+    height: 50px;
+    width: 150px;
+    font-size: 120%;
+    background-color: #F15B40 !important;
+}
+
+#plan-finder, #carousel-div{
+    background-color: #67ABB8; 
+    border-radius: 1rem;
+}
+
+.scroll-container {   
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;   
+    scroll-behavior: smooth;  
+    margin: auto;
+}
+
+.scroll-container::-webkit-scrollbar {
+    height: 20px; 
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    margin: 0 100px; 
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background-color: #F15B40;
+    border-radius: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    background-color: #D9452D;
+}
