@@ -13,7 +13,8 @@ const getState = ({ getStore, getActions, setStore }) => {
 					background: "white",
 					initial: "white"
 				}
-			]
+			],
+			plans: []
 		},
 		actions: {
 			
@@ -23,13 +24,12 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 			getMessage: async () => {
 				try{
-					
 					const resp = await fetch(process.env.BACKEND_URL + "/api/hello")
 					const data = await resp.json()
 					setStore({ message: data.message })
 					
 					return data;
-				}catch(error){
+				} catch (error) {
 					console.log("Error loading message from backend", error)
 				}
 			},
@@ -107,6 +107,27 @@ const getState = ({ getStore, getActions, setStore }) => {
 					return false;
 				}
 			},
+
+			getPlans: async () => {
+				try {
+					const resp = await fetch(process.env.BACKEND_URL + "/plans", {
+						method: "GET",
+						headers: { "Content-Type": "application/json" }
+					})
+
+					console.log(resp)
+					const data = await resp.json()					
+					
+					setStore({ plans: data})
+					const store = getStore();
+					console.log(store.plans)
+
+
+				} catch (error) {
+					console.error("Error trayendo planes:", error);
+					return false;
+				},				
+
 			getCategories: async () => {
 				try {
 				  const resp = await fetch(process.env.BACKEND_URL + "/categories", {
@@ -147,6 +168,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error("Error al crear el plan:", error);
 					throw error;
 				}
+
 			}
 		}
 	};
