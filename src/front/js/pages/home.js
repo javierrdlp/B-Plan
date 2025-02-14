@@ -40,24 +40,29 @@ export const Home = () => {
   ];
 
   useEffect(() => {
-	
-	localStorage.removeItem("token");  
-  
-	
-	setIsLoggedIn(false);  
+    const token = localStorage.getItem("token");  
+    if (token) {
+      setIsLoggedIn(true);  
+    } else {
+      setIsLoggedIn(false);  
+    }
   }, []);
+  
   
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       await actions.login(email, password);
+      localStorage.setItem("token", store.token);  
       setShowLoginPopup(false);
-      navigate('/profile');  
+      setIsLoggedIn(true);  
+      navigate('/profile');
     } catch (error) {
       console.error('Error al intentar iniciar sesión', error);
     }
   };
+  
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -70,6 +75,8 @@ export const Home = () => {
       console.error('Error al intentar registrarse', error);
     }
   };
+ 
+  
 
   return (
     <div className="container justify-content-center mt-5">
