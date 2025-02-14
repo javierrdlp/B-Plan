@@ -80,26 +80,34 @@ const Layout = () => {
             </div>
         );
     } else {
-        return (
-            <div>
-                <BrowserRouter basename={basename}>
-                    <ScrollToTop>
-                        <Routes>
-                            <Route element={<Home />} path="/" />
-                            <Route element={<Profile />} path="/profile" />
-                            <Route path="/plans-history" element={<PlansHistory />} />
-                            <Route path="/active-plans" element={<ActivePlans />} />
-                            <Route path="/new-plan" element={<NewPlan />} />
-                            <Route path="/join-plan" element={<JoinPlan />} />
-                            <Route element={<Demo />} path="/demo" />
-                            <Route element={<Single />} path="/single/:theid" />
-                            <Route element={<h1>Not found!</h1>} />
-                        </Routes>
-                        <Footer />
-                    </ScrollToTop>
-                </BrowserRouter>
-            </div>
-        );
+
+
+        
+        
+    return (
+        <div>
+            <BrowserRouter basename={basename}>
+                <ScrollToTop>
+                    <Navbar />
+                    <Routes>
+                        <Route element={<Home />} path="/" />
+                        <Route element={<LogedHome />} path="/loged-home" />
+                        <Route element={<Profile />} path="/profile" /> 
+                        <Route path="/plans-history" element={<PlansHistory />} />
+                        <Route path="/active-plans" element={<ActivePlans />} />
+                        <Route path="/new-plan" element={<NewPlan />} />
+                        <Route path="/join-plan" element={<JoinPlan />} />
+                        <Route element={<Demo />} path="/demo" />
+                        <Route element={<Single />} path="/single/:theid" />
+                        <Route element={<h1>Not found!</h1>} />
+                    </Routes>
+                    <Footer />
+                </ScrollToTop>
+            </BrowserRouter>
+        </div>
+    );
+
+        
     }
 };
 

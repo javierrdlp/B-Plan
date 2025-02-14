@@ -107,7 +107,47 @@ const getState = ({ getStore, getActions, setStore }) => {
 					return false;
 				}
 			},
-			
+			getCategories: async () => {
+				try {
+				  const resp = await fetch(process.env.BACKEND_URL + "/categories", {
+					method: "GET",
+					headers: {
+					  "Content-Type": "application/json",
+					},
+				  });
+				  if (!resp.ok) {
+					throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+				  }
+			  
+				  const data = await resp.json();
+				  setStore({ categories: data });
+				} catch (error) {
+				  console.error("Error al obtener categorías:", error);
+				}
+			  },
+			createPlan: async (planData) => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token de autenticación");
+
+					const resp = await fetch(process.env.BACKEND_URL + "/plans", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"Authorization": "Bearer " + token,
+						},
+						body: JSON.stringify(planData),
+					});
+					if (!resp.ok) throw new Error("Error al crear el plan");
+
+					const data = await resp.json();
+					console.log("Plan creado:", data);
+					return data;
+				} catch (error) {
+					console.error("Error al crear el plan:", error);
+					throw error;
+				}
+			}
 		}
 	};
 };
