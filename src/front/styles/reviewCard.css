@@ -7,10 +7,6 @@
 }
 
 .custom-shadow {
-    box-shadow: 20px 20px 0 rgba(103,171,184, 1); 
-}
-
-.custom-shadow-plan{
-    box-shadow: 10px 10px 0 rgb(241, 91, 64); 
+    box-shadow: 20px 20px 0 rgba(103,171,184, 1); /* Sombra negra con 50% de opacidad */
 }
 
