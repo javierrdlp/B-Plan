@@ -4,7 +4,7 @@ import logoLetras from "../../img/logo_letras.png"
 
 
 export const Footer = () => (
-	<footer className="footer mt-5 py-3 text-center" style={{backgroundColor: "#67ABB8"}}>
+	<footer className="footer mt-5 p-3 text-center" style={{backgroundColor: "#67ABB8"}}>
 		<div className="row mb-5">
 			<div className="col-4">
 				<img className="logo-letras" src={logoLetras} alt="Website Logo" style={{ height: "40%"}} />
