@@ -57,8 +57,6 @@ const Layout = () => {
             image: "https://cdn-museabrugge-be.cloud.glue.be/https%3A%2F%2Fwww.museabrugge.be%2Fvolumes%2Fgeneral%2FBezoek-het-Groeningemuseum_Musea-Brugge.jpg?dpr=2&w=1440&h=590&fit=crop&s=3c676338b7222eaf5b274e130e09698e",
             locationCoordinates: { lat: 40.4168, lng: -3.7038 },
         };
- 66-flujo-de-sign-up-y-login
-
 
         return (
             <div>
@@ -107,14 +105,11 @@ const Layout = () => {
             </BrowserRouter>
         </div>
     );
-    }else{
- development
         return (
             <div>
                 <BrowserRouter basename={basename}>
                     <ScrollToTop>
                         <Routes>
- 66-flujo-de-sign-up-y-login
                             <Route element={<Home />} path="/" />
                             <Route element={<Profile />} path="/profile" />
                             <Route path="/plans-history" element={<PlansHistory />} />

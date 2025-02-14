@@ -11,7 +11,6 @@ import { Link, useNavigate } from "react-router-dom";
 import ReviewCards from "../component/reviewCard";
 
 export const Home = () => {
- 66-flujo-de-sign-up-y-login
   const { store, actions } = useContext(Context);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
