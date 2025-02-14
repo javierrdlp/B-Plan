@@ -4,7 +4,7 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 import os
 from datetime import datetime
 from pytz import timezone
-from flask import Flask, request, jsonify, url_for, send_from_directory, render_template
+from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
@@ -32,13 +32,12 @@ app = Flask(__name__)
 
 app.config.update(dict(
     DEBUG = False,
-    MAIL_SERVER = 'smtp.gmail.com',
-    MAIL_PORT = 587, 
-    MAIL_USE_TLS = True,
+    MAIL_SERVER = 'smpt.gmail.com',
+    MAIL_PORT = 587,
+    MAIL_USE_TL = True,
     MAIL_USE_SSL = False,
     MAIL_USERNAME = 'bplan4geeks@gmail.com',
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD'),
-    MAIL_DEFAULT_SENDER = 'bplan4geeks@gmail.com'
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
 ))
 
 mail = Mail(app)
@@ -99,8 +98,9 @@ def serve_any_other_file(path):
 @app.route('/register', methods=['POST'])
 def register():
     body = request.get_json(silent=True)
-    if body == None:
+    if body is None:
         return jsonify({'msg': 'Debes enviar la información en el body: email y password'}), 400
+
     if 'email' not in body:
         return jsonify({'msg': 'El campo email es obligatorio'}), 400
     if 'password' not in body:
@@ -116,16 +116,21 @@ def register():
     new_user.name = body['name']
     db.session.add(new_user)
     db.session.commit()
+    access_token = create_access_token(identity=new_user.email)
+
+
+
     html_content = render_template('emails/welcome_email.html', name=body['name'])
     msg = Message(
         subject='Bienvenido a B PLAN',
         sender='bplan4geeks@gmail.com',
         recipients=[body['email']],
     )
-    msg.replay_to = 'bplan4geeks@gmail.com'
+    msg.reply_to = 'bplan4geeks@gmail.com'
     msg.html = html_content
     mail.send(msg)
-    return jsonify({'msg': 'Nuevo usuario creado con éxito y correo de bienvenida enviado'}), 200
+    return jsonify({'msg': 'Nuevo usuario creado con éxito y correo de bienvenida enviado', 'token': access_token}), 201
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -145,7 +150,7 @@ def login():
 @app.route('/private', methods=["GET"])
 @jwt_required()
 def protected():
-    # Access the identity of the current user with get_jwt_identity
+    
     current_user = get_jwt_identity()
     return jsonify({'msg': 'ok', 'user': current_user}), 200
 
@@ -202,10 +207,10 @@ def delete_profile():
     if user is None:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
     
-    # Eliminamos la asistencia del plan al eliminar el usuario
+    
     AssistantPlan.query.filter_by(user_id=user.id).delete()
     
-    # Eliminamos los planes asociados al usuario
+   
     UserPlan.query.filter_by(user_id=user.id).delete()
     
     db.session.delete(user)
@@ -213,12 +218,7 @@ def delete_profile():
     return jsonify({'msg': 'Usuario eliminado'}), 200
 
 @app.route('/plans', methods=['POST'])
-@jwt_required()
 def create_plan():
-    user_email = get_jwt_identity()
-    user = User.query.filter_by(email=user_email).first()
-    if user is None:
-        return jsonify({'msg': 'Usuario no encontrado'}), 404
     body = request.get_json(silent=True)
     if body is None:
         return jsonify({'msg': 'Debes añadir información para el plan'}), 400
@@ -234,6 +234,7 @@ def create_plan():
         return jsonify({'msg': 'El campo end_time es obligatorio'}), 400
     if 'category_id' not in body:
         return jsonify({'msg': 'El campo category_id es obligatorio'}), 400
+
     new_plan = Plan(
         name=body['name'],
         people=body['people'],
@@ -244,11 +245,12 @@ def create_plan():
         latitude=body.get('latitude'),
         category_id=body['category_id'],
         image=body.get('image'),
-        status="open",
-        user_id=user.id)
+        status="open"
+    )
+    
     db.session.add(new_plan)
     db.session.commit()
-    return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 200
+    return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 201
 
 @app.route('/plans', methods=['GET'])
 def get_plans():
@@ -272,7 +274,7 @@ def put_plan(plan_id):
     data = request.get_json()
     if 'name' in data: 
         plan.name = data['name']
-    # Condicional para si intentas modificar las personas por menos de las que hay ya apuntadas.
+    
     if 'people' in data:
         active_users = plan.people_active
         if data['people'] < active_users:
@@ -328,16 +330,6 @@ def join_plan(plan_id):
     if plan.people_active >= plan.people:
         plan.status = "full"
     db.session.commit()
-    plan_creator = User.query.get(plan.user_id)
-    if plan_creator and plan_creator.email != user_email:
-        html_content = render_template('emails/join_plan.html', plan_name=plan.name, joiner_name=user.email)
-        msg = Message(
-            subject=f'Alguien se ha unido a tu plan: {plan.name}',
-            sender='bplan4geeks@gmail.com',
-            recipients=[plan_creator.email],
-        )
-        msg.html = html_content
-        mail.send(msg)
     return jsonify({'msg': 'Te has unido al plan con éxito', 'plan': plan.serialize()}), 200
 
 @app.route('/plans/<int:plan_id>/leave', methods=['POST'])
@@ -412,6 +404,42 @@ def send_mail():
     msg.html = "<h1>Te envié este correo desde flask</h1>"
     mail.send(msg)
     return jsonify({'msg': 'Correo enviado!!!'})
+
+from flask import request, jsonify
+from werkzeug.utils import secure_filename
+import os
+
+@app.route('/api/uploadProfileImage', methods=['POST'])
+@jwt_required()
+def upload_profile_image():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+
+    # Verificar si la solicitud tiene un archivo
+    if 'file' not in request.files:
+        return jsonify({'msg': 'No se adjuntó ninguna imagen'}), 400
+
+    file = request.files['file']
+    
+    # Si no hay archivo, se retorna un error
+    if file.filename == '':
+        return jsonify({'msg': 'No se adjuntó ninguna imagen'}), 400
+
+    # Guardar la imagen con un nombre seguro
+    filename = secure_filename(file.filename)
+    filepath = os.path.join('uploads', filename)
+    
+    file.save(filepath)
+    
+    # Actualizar la imagen de perfil del usuario
+    user.image = filepath
+    db.session.commit()
+
+    return jsonify({'msg': 'Imagen subida correctamente', 'image_url': filepath}), 200
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

@@ -17,48 +17,49 @@ const getState = ({ getStore, getActions, setStore }) => {
 			plans: []
 		},
 		actions: {
-			// Use getActions to call a function within a fuction
+			
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
 			},
 
 			getMessage: async () => {
-				try {
-					// fetching data from the backend
+				try{
 					const resp = await fetch(process.env.BACKEND_URL + "/api/hello")
 					const data = await resp.json()
 					setStore({ message: data.message })
-					// don't forget to return something, that is how the async resolves
+					
 					return data;
 				} catch (error) {
 					console.log("Error loading message from backend", error)
 				}
 			},
 			changeColor: (index, color) => {
-				//get the store
+				
 				const store = getStore();
 
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
+				
 				const demo = store.demo.map((elm, i) => {
 					if (i === index) elm.background = color;
 					return elm;
 				});
 
-				//reset the global store
+				
 				setStore({ demo: demo });
 			},
-			signup: async (email, password) => {
+			
+			signup: async (name, email, password) => {
 				try {
 					const resp = await fetch(process.env.BACKEND_URL + "/register", {
 						method: "POST",
 						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({ email, password }),
+						body: JSON.stringify({ email, password, name }),
 					});
 					if (!resp.ok) throw new Error("Error en el registro");
 
 					const data = await resp.json();
 					console.log("Usuario registrado:", data);
+					localStorage.setItem("token", data.token);
+					setStore({ token: data.token });
 				} catch (error) {
 					console.error("Error en el registro:", error);
 					throw error;
@@ -106,6 +107,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					return false;
 				}
 			},
+
 			getPlans: async () => {
 				try {
 					const resp = await fetch(process.env.BACKEND_URL + "/plans", {
@@ -124,10 +126,49 @@ const getState = ({ getStore, getActions, setStore }) => {
 				} catch (error) {
 					console.error("Error trayendo planes:", error);
 					return false;
+				},				
+
+			getCategories: async () => {
+				try {
+				  const resp = await fetch(process.env.BACKEND_URL + "/categories", {
+					method: "GET",
+					headers: {
+					  "Content-Type": "application/json",
+					},
+				  });
+				  if (!resp.ok) {
+					throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+				  }
+			  
+				  const data = await resp.json();
+				  setStore({ categories: data });
+				} catch (error) {
+				  console.error("Error al obtener categorías:", error);
+				}
+			  },
+			createPlan: async (planData) => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token de autenticación");
+
+					const resp = await fetch(process.env.BACKEND_URL + "/plans", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"Authorization": "Bearer " + token,
+						},
+						body: JSON.stringify(planData),
+					});
+					if (!resp.ok) throw new Error("Error al crear el plan");
+
+					const data = await resp.json();
+					console.log("Plan creado:", data);
+					return data;
+				} catch (error) {
+					console.error("Error al crear el plan:", error);
+					throw error;
 				}
 
-
-				
 			}
 		}
 	};
