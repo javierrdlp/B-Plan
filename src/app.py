@@ -116,11 +116,7 @@ def register():
     new_user.name = body['name']
     db.session.add(new_user)
     db.session.commit()
- 66-flujo-de-sign-up-y-login
     access_token = create_access_token(identity=new_user.email)
-    return jsonify({'msg': 'Nuevo usuario creado con éxito', 'token': access_token}), 201
-
-
     html_content = render_template('emails/welcome_email.html', name=body['name'])
     msg = Message(
         subject='Bienvenido a B PLAN',
@@ -131,7 +127,6 @@ def register():
     msg.html = html_content
     mail.send(msg)
     return jsonify({'msg': 'Nuevo usuario creado con éxito y correo de bienvenida enviado'}), 200
- development
 
 @app.route('/login', methods=['POST'])
 def login():
