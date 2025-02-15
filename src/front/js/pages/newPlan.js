@@ -20,7 +20,7 @@ const NewPlan = () => {
     startTime: "",
     endTime: "",
     location: "",
-    category: "",
+    category: 1,
     description: "",
   });
 
@@ -65,26 +65,46 @@ const NewPlan = () => {
         setSelectedImg(
           "https://i0.wp.com/eltiempolatino.com/wp-content/uploads/2022/08/cine.jpg?fit=1200%2C613&ssl=1"
         );
+        setFormData((prevData) => ({
+          ...prevData,
+          ["category"]: 1,
+        }));
         break;
       case "Restaurants":
         setSelectedImg(
           "https://www.clarin.com/2015/03/20/rkfYDQ027l_1200x0.jpg"
         );
+        setFormData((prevData) => ({
+          ...prevData,
+          ["category"]: 2,
+        }));
         break;
       case "Outdoors":
         setSelectedImg(
           "https://cdn.businessinsider.es/sites/navi.axelspringer.es/public/media/image/2022/08/amigos-piscina-verano-2777265.jpg?tf=3840x"
         );
+        setFormData((prevData) => ({
+          ...prevData,
+          ["category"]: 3,
+        }));
         break;
       case "Sports":
         setSelectedImg(
           "https://mongooseagency.com/files/3415/9620/1413/Return_of_Sports.jpg"
         );
+        setFormData((prevData) => ({
+          ...prevData,
+          ["category"]: 4,
+        }));
         break;
       case "Art":
         setSelectedImg(
           "https://cdn-museabrugge-be.cloud.glue.be/https%3A%2F%2Fwww.museabrugge.be%2Fvolumes%2Fgeneral%2FBezoek-het-Groeningemuseum_Musea-Brugge.jpg?dpr=2&w=1440&h=590&fit=crop&s=3c676338b7222eaf5b274e130e09698e"
         );
+        setFormData((prevData) => ({
+          ...prevData,
+          ["category"]: 5,
+        }));
         break;
       default:
         break;

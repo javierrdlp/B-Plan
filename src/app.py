@@ -117,9 +117,6 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     access_token = create_access_token(identity=new_user.email)
-
-
-
     html_content = render_template('emails/welcome_email.html', name=body['name'])
     msg = Message(
         subject='Bienvenido a B PLAN',
