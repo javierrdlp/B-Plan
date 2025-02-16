@@ -215,7 +215,9 @@ def delete_profile():
     return jsonify({'msg': 'Usuario eliminado'}), 200
 
 @app.route('/plans', methods=['POST'])
+@jwt_required()
 def create_plan():
+    user_id = get_jwt_identity()
     body = request.get_json(silent=True)
     if body is None:
         return jsonify({'msg': 'Debes añadir información para el plan'}), 400
@@ -232,22 +234,26 @@ def create_plan():
     if 'category_id' not in body:
         return jsonify({'msg': 'El campo category_id es obligatorio'}), 400
 
+    user = User.query.filter_by(email=user_id).first()
+    if not user:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+
+    # Create the new plan
     new_plan = Plan(
         name=body['name'],
         people=body['people'],
         date=body['date'],
         start_time=body['start_time'],
         end_time=body['end_time'],
-        longitude=body.get('longitude'),
-        latitude=body.get('latitude'),
         category_id=body['category_id'],
-        image=body.get('image'),
-        status="open"
+        creator_id=user.id, 
     )
-    
+
     db.session.add(new_plan)
     db.session.commit()
-    return jsonify({'msg': 'Nuevo plan creado con éxito', 'plan': new_plan.serialize()}), 201
+
+    return jsonify({'msg': 'Plan creado exitosamente', 'plan': new_plan.serialize()}), 201
+
 
 @app.route('/plans', methods=['GET'])
 def get_plans():
@@ -259,9 +265,16 @@ def get_single_plan(plan_id):
     plan = Plan.query.get(plan_id)
     if plan is None:
         return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    creator = User.query.get(plan.creator_id)
     plan_serialized = plan.serialize()
+    plan_serialized['creator'] = {
+        'id': creator.id,
+        'name': creator.name,
+        'email': creator.email
+    }
     plan_serialized['assistants'] = [assistant_plan.assistant.serialize() for assistant_plan in plan.assistant_plans]
     return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
+
 
 @app.route('/plans/<int:plan_id>', methods=['PUT'])
 def put_plan(plan_id):

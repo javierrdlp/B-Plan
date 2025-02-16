@@ -101,3 +101,4 @@ export const LogedHome = () => {
     );
 
 };
+export default LogedHome;
