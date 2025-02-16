@@ -157,10 +157,10 @@ const NewPlan = () => {
       category_id: formData.category,
       image: selectedImg,
     };
-
+  
     try {
       await actions.createPlan(planData);
-      navigate("/");
+      navigate("/active-plans");
     } catch (error) {
       console.error("Error al crear el plan:", error);
     }
