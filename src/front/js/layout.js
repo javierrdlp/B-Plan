@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ScrollToTop from "./component/scrollToTop";
 import { BackendURL } from "./component/backendURL";
-
+import { LogedHome } from "./pages/logedHome";
 import { Home } from "./pages/home";
 import { Demo } from "./pages/demo";
 import { Single } from "./pages/single";
@@ -64,7 +64,7 @@ const Layout = () => {
                     <ScrollToTop>
                         <Navbar />
                         <Routes>
-                            <Route element={<Home />} path="/" />
+                            <Route element={<Home />} path="/" />                            
                             <Route element={<Profile />} path="/profile" />
                             <Route path="/plans-history" element={<PlansHistory />} />
                             <Route path="/active-plans" element={<ActivePlans />} />
