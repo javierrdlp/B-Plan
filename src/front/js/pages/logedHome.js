@@ -23,21 +23,51 @@ export const LogedHome = () => {
             people: 0
         });
 
-    const [filteredPlans, setFilteredPlans] = useState([]);    
+    const [filteredPlans, setFilteredPlans] = useState([]);
 
-    const handleNewPlanClick = async () => {      
-      navigate("/new-plan");
+    const getAddres = async (latitude, longitude) => {
+        try {
+            const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${latitude}%2C${longitude}&key=d0698834246341fe9a58e498380bbb69&language=es&limit=5&countrycode=es&bounds=40.388791,-3.694706|40.675083,-3.271308`)
+            const data = await response.json();
+            console.log(data);
+            if (data.results.length > 0) {
+                const result = data.results[0].components;
+    
+                const placeName = result.attraction || result.hotel || result.building || result.tourism || result.retail || null;
+                const street = result.road || result.pedestrian || "Unknown street";
+                const number = result.house_number ? `, ${result.house_number}` : "";
+    
+                if (placeName) {
+                    return `${placeName}, ${street}${number}`;
+                }  else {
+                return "Location not found"
+            }
+        }
 
+        } catch (error) {
+            console.error("Error fetching address:", error);
+            return "Unknown location";
+        }
     };
 
-    const handleShowPlansClick = async () => {           
+    const handleNewPlanClick = async () => {
+        navigate("/new-plan");
+    };
+
+    const handleShowPlansClick = async () => {
         await actions.getPlans();
- 
-        setFilteredPlans(store.plans.filter(plan =>
-             (plan.date === searchRules.date) &&
-             (plan.people >= searchRules.people)
-         )); 
-     };
+        const filtered = store.plans.filter(plan =>
+            (plan.date === searchRules.date) &&
+            (plan.people >= searchRules.people)
+        );
+
+        const planswithAddress = await Promise.all(filtered.map(async (plan) =>{
+            const address = await getAddres(plan.latitude, plan.longitude)
+            return {...plan, address}
+        }));
+
+        setFilteredPlans(planswithAddress);
+    };
 
 
     return (
@@ -93,12 +123,13 @@ export const LogedHome = () => {
             <div id="carousel-div" className="row mt-5">
                 <div className="scroll-container mb-5">
                     {filteredPlans.map((value) => (
-                        <PlanCards key={value.id} title={value.name} place="Lugar" people={value.people} imageUrl={value.image} />
+                        <PlanCards key={value.id} title={value.name} place={value.address} people={value.people} imageUrl={value.image} />
                     ))}
                 </div>
             </div>
         </div>
     );
-
 };
+
 export default LogedHome;
+

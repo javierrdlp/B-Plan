@@ -17,36 +17,36 @@ const getState = ({ getStore, getActions, setStore }) => {
 			plans: []
 		},
 		actions: {
-			
+
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
 			},
 
 			getMessage: async () => {
-				try{
+				try {
 					const resp = await fetch(process.env.BACKEND_URL + "/api/hello")
 					const data = await resp.json()
 					setStore({ message: data.message })
-					
+
 					return data;
 				} catch (error) {
 					console.log("Error loading message from backend", error)
 				}
 			},
 			changeColor: (index, color) => {
-				
+
 				const store = getStore();
 
-				
+
 				const demo = store.demo.map((elm, i) => {
 					if (i === index) elm.background = color;
 					return elm;
 				});
 
-				
+
 				setStore({ demo: demo });
 			},
-			
+
 			signup: async (name, email, password) => {
 				try {
 					const resp = await fetch(process.env.BACKEND_URL + "/register", {
@@ -82,10 +82,12 @@ const getState = ({ getStore, getActions, setStore }) => {
 					throw error;
 				}
 			},
+
 			logout: () => {
 				localStorage.removeItem("token");
 				setStore({ token: null });
 			},
+
 			private: async () => {
 				try {
 					const token = localStorage.getItem("token");
@@ -116,9 +118,9 @@ const getState = ({ getStore, getActions, setStore }) => {
 					})
 
 					console.log(resp)
-					const data = await resp.json()					
-					
-					setStore({ plans: data})
+					const data = await resp.json()
+
+					setStore({ plans: data })
 					const store = getStore();
 					console.log(store.plans)
 
@@ -126,6 +128,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 				} catch (error) {
 					console.error("Error trayendo planes:", error);
 					return false;
+
 				}
 			},			
 
@@ -146,31 +149,50 @@ const getState = ({ getStore, getActions, setStore }) => {
 				} catch (error) {
 				  console.error("Error al obtener categorías:", error);
 				}
-			  },
-			createPlan: async (planData) => {
-				try {
-					const token = localStorage.getItem("token");
-					if (!token) throw new Error("No hay token de autenticación");
-
-					const resp = await fetch(process.env.BACKEND_URL + "/plans", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"Authorization": "Bearer " + token,
-						},
-						body: JSON.stringify(planData),
-					});
-					if (!resp.ok) throw new Error("Error al crear el plan");
-
-					const data = await resp.json();
-					console.log("Plan creado:", data);
-					return data;
-				} catch (error) {
-					console.error("Error al crear el plan:", error);
-					throw error;
-				}
-
 			},
+
+			getCategories: async () => {
+					try {
+						const resp = await fetch(process.env.BACKEND_URL + "/categories", {
+							method: "GET",
+							headers: {
+								"Content-Type": "application/json",
+							},
+						});
+						if (!resp.ok) {
+							throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+						}
+
+						const data = await resp.json();
+						setStore({ categories: data });
+					} catch (error) {
+						console.error("Error al obtener categorías:", error);
+					}
+				},
+				createPlan: async (planData) => {
+						try {
+							const token = localStorage.getItem("token");
+							if (!token) throw new Error("No hay token de autenticación");
+
+							const resp = await fetch(process.env.BACKEND_URL + "/plans", {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/json",
+									"Authorization": "Bearer " + token,
+								},
+								body: JSON.stringify(planData),
+							});
+							if (!resp.ok) throw new Error("Error al crear el plan");
+
+							const data = await resp.json();
+							console.log("Plan creado:", data);
+							return data;
+						} catch (error) {
+							console.error("Error al crear el plan:", error);
+							throw error;
+						}	          
+			},
+      
 			deleteUser: async () => {
 				try {
 					const token = localStorage.getItem("token");
@@ -203,9 +225,8 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error("Error al eliminar el usuario:", error);
 					throw error;
 				}
-			},
-		}
+			},      
+		
 	};
-};
 
 export default getState;
