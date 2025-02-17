@@ -203,11 +203,8 @@ def delete_profile():
     user = User.query.filter_by(email=user_email).first()
     if user is None:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
-    
-    
+    Plan.query.filter_by(creator_id=user.id).delete()
     AssistantPlan.query.filter_by(user_id=user.id).delete()
-    
-   
     UserPlan.query.filter_by(user_id=user.id).delete()
     
     db.session.delete(user)
@@ -311,11 +308,26 @@ def get_active_plans():
     user = User.query.filter_by(email=user_email).first()
     if user is None:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
-    today = datetime.date.today()
-    upcoming_plans = db.session.query(Plan).join(UserPlan).filter(UserPlan.user_id == user.id, Plan.date > today).all()
-    if not upcoming_plans:
-        return jsonify({'msg': 'El usuario no tiene planes activos'}), 404
-    return jsonify({'msg': 'ok', 'upcoming_plans': [plan.serialize() for plan in upcoming_plans]}), 200
+    today = datetime.now(spain_tz).date()
+    print(f'Fecha de hoy en España: {today}')
+    created_plans = Plan.query.filter(
+        Plan.creator_id == user.id,
+        Plan.date > today
+    ).all()
+    joined_plans = db.session.query(Plan).join(UserPlan).filter(
+        UserPlan.user_id == user.id,
+        Plan.date > today
+    ).all()
+    all_plans = list({plan.id: plan for plan in created_plans + joined_plans}.values())
+    if not all_plans:
+        return jsonify({'msg': 'No tienes planes activos'}), 404
+    serialized_plans = []
+    for plan in all_plans:
+        plan_data = plan.serialize()
+        creator = User.query.get(plan.creator_id)
+        plan_data['creator_name'] = creator.name if creator else "Unknown"
+        serialized_plans.append(plan_data)
+    return jsonify({'msg': 'ok', 'plans': serialized_plans}), 200
 
 @app.route('/plans/<int:plan_id>/join', methods=['POST'])
 @jwt_required()

@@ -84,31 +84,39 @@ export const Profile = () => {
 
   useEffect(() => {
     if (store.user) {
-      setFormData({
-        name: store.user.name,
-        email: store.user.email,
-        phone: store.user.phone,
-        address: store.user.address,
-        dob: store.user.dob,
-        description: store.user.description,
-        interests: store.user.interests,
-      });
-    } else {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      console.log("User data from store: ", store.user);
-      if (storedUser) {
         setFormData({
-          name: storedUser.name,
-          email: storedUser.email,
-          phone: storedUser.phone,
-          address: storedUser.address,
-          dob: storedUser.dob,
-          description: storedUser.description,
-          interests: storedUser.interests,
+            name: store.user.name || "",
+            email: store.user.email || "",
+            phone: store.user.phone || "",
+            address: store.user.address || "",
+            dob: store.user.dob || "",
+            description: store.user.description || "",
+            interests: store.user.interests || "",
         });
-      }
+    } else {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                console.log("LocalStorage user data:", user);
+
+                setFormData({
+                    name: user.name || "",
+                    email: user.email || "",
+                    phone: user.phone || "",
+                    address: user.address || "",
+                    dob: user.dob || "",
+                    description: user.description || "",
+                    interests: user.interests || "",
+                });
+            } catch (error) {
+                console.error("Error parsing user data from localStorage:", error);
+                localStorage.removeItem("user");
+            }
+        }
     }
-  }, [store.user]);
+}, [store.user]); 
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -178,7 +186,7 @@ export const Profile = () => {
           backgroundPosition: "center center",
         }}
       >
-        <button type="button" class="mt-1 ms-1 border-3 border-dark btn btn-danger" data-bs-toggle="modal" data-bs-target="#Modal">
+        <button type="button" class="mt-3 ms-3 border-3 border-dark btn btn-danger" data-bs-toggle="modal" data-bs-target="#Modal">
           Delete Account
         </button>
         <div class="modal fade" id="Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
