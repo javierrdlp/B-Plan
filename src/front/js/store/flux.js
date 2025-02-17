@@ -15,10 +15,10 @@ const getState = ({ getStore, getActions, setStore }) => {
 				}
 			],
 			plans: [],
-			userProfile: {}  
+			userProfile: {}
 		},
 		actions: {
-			
+
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
 			},
@@ -28,7 +28,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					const resp = await fetch(process.env.BACKEND_URL + "/api/hello");
 					const data = await resp.json();
 					setStore({ message: data.message });
-					
+
 					return data;
 				} catch (error) {
 					console.log("Error loading message from backend", error);
@@ -42,7 +42,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 				});
 				setStore({ demo: demo });
 			},
-			
+
 			signup: async (name, email, password) => {
 				try {
 					const resp = await fetch(process.env.BACKEND_URL + "/register", {
@@ -78,10 +78,12 @@ const getState = ({ getStore, getActions, setStore }) => {
 					throw error;
 				}
 			},
+
 			logout: () => {
 				localStorage.removeItem("token");
 				setStore({ token: null });
 			},
+
 			private: async () => {
 				try {
 					const token = localStorage.getItem("token");
@@ -112,7 +114,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					});
 					console.log(resp);
 					const data = await resp.json();
-					
+
 					setStore({ plans: data });
 					const store = getStore();
 					console.log(store.plans);
@@ -120,24 +122,24 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error("Error trayendo planes:", error);
 					return false;
 				}
-			},				
+			},
 
 			getCategories: async () => {
 				try {
-				  const resp = await fetch(process.env.BACKEND_URL + "/categories", {
-					method: "GET",
-					headers: {
-					  "Content-Type": "application/json",
-					},
-				  });
-				  if (!resp.ok) {
-					throw new Error(`Error ${resp.status}: ${resp.statusText}`);
-				  }
-				  
-				  const data = await resp.json();
-				  setStore({ categories: data });
+					const resp = await fetch(process.env.BACKEND_URL + "/categories", {
+						method: "GET",
+						headers: {
+							"Content-Type": "application/json",
+						},
+					});
+					if (!resp.ok) {
+						throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+					}
+
+					const data = await resp.json();
+					setStore({ categories: data });
 				} catch (error) {
-				  console.error("Error al obtener categorías:", error);
+					console.error("Error al obtener categorías:", error);
 				}
 			},
 
@@ -165,34 +167,68 @@ const getState = ({ getStore, getActions, setStore }) => {
 				}
 			},
 
-			
+			deleteUser: async () => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token de autenticación");
+
+					const isValidToken = await getActions().private();
+					if (!isValidToken) {
+						throw new Error("Token no válido o expirado");
+					}
+
+					const resp = await fetch(process.env.BACKEND_URL + "/user/profile", {
+						method: "DELETE",
+						headers: {
+							"Content-Type": "application/json",
+							"Authorization": "Bearer " + token,
+						},
+					});
+
+					if (!resp.ok) {
+						const errorData = await resp.json();
+						throw new Error(errorData.message || "Error al eliminar el usuario");
+					}
+
+					const data = await resp.json();
+					console.log("Usuario eliminado:", data);
+					localStorage.removeItem("token");
+					setStore({ token: null, user: null });
+					return data;
+				} catch (error) {
+					console.error("Error al eliminar el usuario:", error);
+					throw error;
+				}
+			},
+
+
 			saveProfile: async (profileData) => {
 				try {
 					const token = localStorage.getItem("token");
 					if (!token) throw new Error("No hay token de autenticación");
-			
+
 					const resp = await fetch(process.env.BACKEND_URL + "/user/profile", {
-						method: "PUT",  
+						method: "PUT",
 						headers: {
 							"Content-Type": "application/json",
-							"Authorization": "Bearer " + token, 
+							"Authorization": "Bearer " + token,
 						},
-						body: JSON.stringify(profileData),  
+						body: JSON.stringify(profileData),
 					});
 					if (!resp.ok) throw new Error("Error al actualizar el perfil");
 					const data = await resp.json();
 					console.log("Perfil actualizado:", data);
 					const store = getStore();
-					setStore({ userProfile: data });  
-					localStorage.setItem("userProfile", JSON.stringify(data));  
-			
+					setStore({ userProfile: data });
+					localStorage.setItem("userProfile", JSON.stringify(data));
+
 					return data;
 				} catch (error) {
 					console.error("Error al actualizar el perfil:", error);
 					throw error;
 				}
 			},
-			
+
 		}
 	};
 };

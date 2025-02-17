@@ -152,11 +152,21 @@ export const Profile = () => {
   const handleSaveChanges = () => {
     localStorage.setItem("user", JSON.stringify(formData));
     actions.saveProfile(formData);  
-    navigate("/profile");
+    navigate("/home");
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      await actions.deleteUser();
+      navigate("/");
+    } catch (error) {
+      console.error("Error al eliminar el usuario:", error);
+    }
   };
 
   return (
     <div className="container mt-4">
+
       <div
         id="profileBackground"
         className="mb-3 position-relative"
@@ -168,6 +178,28 @@ export const Profile = () => {
           backgroundPosition: "center center",
         }}
       >
+        <button type="button" class="mt-1 ms-1 border-3 border-dark btn btn-danger" data-bs-toggle="modal" data-bs-target="#Modal">
+          Delete Account
+        </button>
+        <div class="modal fade" id="Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Are you sure you want to delete the account?</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+              With this you confirm that you want to delete your account forever.
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="mt-1 ms-1 border-3 border-dark btn btn-danger" onClick={handleDeleteUser}>Delete Account</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <button
           onClick={handleBackgroundButtonClick}
           className="btnProfile position-absolute"

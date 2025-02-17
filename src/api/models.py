@@ -68,6 +68,7 @@ class Plan(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     image = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(50), nullable=False, default="open")
+    creator_id = db.Column(db.String(120), nullable=False)
 
     category = db.relationship('Categories', back_populates='plans')
     user_plans = db.relationship('UserPlan', back_populates='plan')
@@ -89,7 +90,12 @@ class Plan(db.Model):
             "latitude": self.latitude,
             "category": self.category_id,
             "image": self.image,
-            "status": self.status
+            "status": self.status,
+            "creator": {
+                "id": self.creator_id,
+                "name": User.query.get(self.creator_id).name if User.query.get(self.creator_id) else None,
+                "email": User.query.get(self.creator_id).email if User.query.get(self.creator_id) else None
+            }
         }
 
 

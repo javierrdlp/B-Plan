@@ -1,7 +1,8 @@
 import React from 'react'
 import "../../styles/reviewCard.css";
 
-const PlanCards = ({title, place, people, imageUrl}) => {
+const PlanCards = ({title,place, people, imageUrl}) => { 
+
     return (        
         <div className="card m-4 p-3 custom-shadow-plan d-flex flex-column mb-5" style={{ 
             flex: "0 0 250px", 
