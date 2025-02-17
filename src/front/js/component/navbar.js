@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import logoLetras from "../../img/logo_letras.png"
 import { Context } from "../store/appContext";
 
@@ -6,8 +6,21 @@ import { Link } from "react-router-dom";
 
 
 export const Navbar = () => {
-	const [profileImage, setProfileImage] = useState("https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png");
 	const { actions } = useContext(Context);
+	const [profileImage, setProfileImage] = useState("https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png");
+	useEffect(() => {
+		const updateProfileImage = () => {
+		  const storedProfileImage = localStorage.getItem("profileImage");
+		  if (storedProfileImage) {
+			setProfileImage(storedProfileImage);
+		  }
+		};
+		updateProfileImage();
+		window.addEventListener("storage", updateProfileImage);
+		return () => {
+		  window.removeEventListener("storage", updateProfileImage);
+		};
+	  }, []); 
 
 	const handleLogout = () => {
 		actions.logout();
