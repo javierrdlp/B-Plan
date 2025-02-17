@@ -152,7 +152,7 @@ export const Profile = () => {
   const handleSaveChanges = () => {
     localStorage.setItem("user", JSON.stringify(formData));
     actions.saveProfile(formData);  
-    navigate("/home");
+    navigate("/");
   };
 
   const handleDeleteUser = async () => {
