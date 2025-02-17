@@ -14,7 +14,8 @@ const getState = ({ getStore, getActions, setStore }) => {
 					initial: "white"
 				}
 			],
-			plans: []
+			plans: [],
+			userProfile: {}  
 		},
 		actions: {
 			
@@ -23,27 +24,22 @@ const getState = ({ getStore, getActions, setStore }) => {
 			},
 
 			getMessage: async () => {
-				try{
-					const resp = await fetch(process.env.BACKEND_URL + "/api/hello")
-					const data = await resp.json()
-					setStore({ message: data.message })
+				try {
+					const resp = await fetch(process.env.BACKEND_URL + "/api/hello");
+					const data = await resp.json();
+					setStore({ message: data.message });
 					
 					return data;
 				} catch (error) {
-					console.log("Error loading message from backend", error)
+					console.log("Error loading message from backend", error);
 				}
 			},
 			changeColor: (index, color) => {
-				
 				const store = getStore();
-
-				
 				const demo = store.demo.map((elm, i) => {
 					if (i === index) elm.background = color;
 					return elm;
 				});
-
-				
 				setStore({ demo: demo });
 			},
 			
@@ -113,20 +109,18 @@ const getState = ({ getStore, getActions, setStore }) => {
 					const resp = await fetch(process.env.BACKEND_URL + "/plans", {
 						method: "GET",
 						headers: { "Content-Type": "application/json" }
-					})
-
-					console.log(resp)
-					const data = await resp.json()					
+					});
+					console.log(resp);
+					const data = await resp.json();
 					
-					setStore({ plans: data})
+					setStore({ plans: data });
 					const store = getStore();
-					console.log(store.plans)
-
-
+					console.log(store.plans);
 				} catch (error) {
 					console.error("Error trayendo planes:", error);
 					return false;
-				},				
+				}
+			},				
 
 			getCategories: async () => {
 				try {
@@ -139,13 +133,14 @@ const getState = ({ getStore, getActions, setStore }) => {
 				  if (!resp.ok) {
 					throw new Error(`Error ${resp.status}: ${resp.statusText}`);
 				  }
-			  
+				  
 				  const data = await resp.json();
 				  setStore({ categories: data });
 				} catch (error) {
 				  console.error("Error al obtener categorías:", error);
 				}
-			  },
+			},
+
 			createPlan: async (planData) => {
 				try {
 					const token = localStorage.getItem("token");
@@ -168,10 +163,39 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error("Error al crear el plan:", error);
 					throw error;
 				}
+			},
 
-			}
+			
+			saveProfile: async (profileData) => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token de autenticación");
+			
+					const resp = await fetch(process.env.BACKEND_URL + "/user/profile", {
+						method: "PUT",  
+						headers: {
+							"Content-Type": "application/json",
+							"Authorization": "Bearer " + token, 
+						},
+						body: JSON.stringify(profileData),  
+					});
+					if (!resp.ok) throw new Error("Error al actualizar el perfil");
+					const data = await resp.json();
+					console.log("Perfil actualizado:", data);
+					const store = getStore();
+					setStore({ userProfile: data });  
+					localStorage.setItem("userProfile", JSON.stringify(data));  
+			
+					return data;
+				} catch (error) {
+					console.error("Error al actualizar el perfil:", error);
+					throw error;
+				}
+			},
+			
 		}
 	};
 };
 
 export default getState;
+

@@ -12,8 +12,7 @@ import { PlansHistory } from "./pages/plansHistory";
 import { ActivePlans } from "./pages/activePlans";
 import NewPlan from './pages/newPlan';
 import JoinPlan from './pages/joinPlan';
-
-
+import { LogedHome } from "./pages/logedHome";  
 
 
 

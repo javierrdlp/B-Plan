@@ -7,10 +7,17 @@ import "../../styles/profile.css";
 export const Profile = () => {
   const { store, actions } = useContext(Context);
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
 
-  const [profileImage, setProfileImage] = useState("https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png");
-  const [backgroundImage, setBackgroundImage] = useState("https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww");
+  
+  const [profileImage, setProfileImage] = useState(
+    localStorage.getItem("profileImage") || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
+  );
+
+ 
+  const [backgroundImage, setBackgroundImage] = useState(
+    localStorage.getItem("backgroundImage") || "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww"
+  );
 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
@@ -21,17 +28,20 @@ export const Profile = () => {
       const reader = new FileReader();
       reader.onload = function (e) {
         setProfileImage(e.target.result);
+        localStorage.setItem("profileImage", e.target.result);  
       };
       reader.readAsDataURL(archivo);
     }
   };
 
+  
   const handleBackgroundImageChange = (event) => {
     const archivo = event.target.files[0];
     if (archivo) {
       const reader = new FileReader();
       reader.onload = function (e) {
         setBackgroundImage(e.target.result);
+        localStorage.setItem("backgroundImage", e.target.result);  
       };
       reader.readAsDataURL(archivo);
     }
@@ -73,7 +83,6 @@ export const Profile = () => {
   });
 
   useEffect(() => {
-    
     if (store.user) {
       setFormData({
         name: store.user.name,
@@ -130,24 +139,20 @@ export const Profile = () => {
     }
   };
 
-  
   useEffect(() => {
-    
     const token = store.token || localStorage.getItem('token');
     if (!token) {
       console.log("No token found, redirecting to login...");
-      navigate('/'); 
+      navigate('/');
     } else {
       console.log("Token encontrado en Profile:", token);
-      
     }
   }, [store.token, navigate]);
 
   const handleSaveChanges = () => {
-    
-    actions.saveProfile(formData);
-    
-    navigate("/home");
+    localStorage.setItem("user", JSON.stringify(formData));
+    actions.saveProfile(formData);  
+    navigate("/profile");
   };
 
   return (
@@ -316,6 +321,30 @@ export const Profile = () => {
               </span>
             </div>
           </div>
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label">
+              Password
+            </label>
+            <div className="input-group">
+              <input
+                type="password"
+                className="form-control"
+                id="password"
+                name="password"
+                value={formData.password || ""} 
+                onChange={handleInputChange}
+                disabled={!isEditing.password}
+                placeholder="Your password"
+              />
+              <span
+                className="input-group-text"
+                onClick={() => toggleEdit("password")}
+                style={{ cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-pencil"></i>
+              </span>
+            </div>
+          </div>
 
           <div className="mb-3">
             <label htmlFor="phone" className="form-label">
@@ -404,7 +433,6 @@ export const Profile = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 disabled={!isEditing.description}
-                placeholder="Describe yourself"
               />
               <span
                 className="input-group-text"
@@ -421,15 +449,14 @@ export const Profile = () => {
               Interests
             </label>
             <div className="input-group">
-              <input
-                type="text"
+              <textarea
                 className="form-control"
                 id="interests"
                 name="interests"
+                rows="3"
                 value={formData.interests}
                 onChange={handleInputChange}
                 disabled={!isEditing.interests}
-                placeholder="Your interests"
               />
               <span
                 className="input-group-text"
@@ -441,9 +468,15 @@ export const Profile = () => {
             </div>
           </div>
 
+          <button
+            type="button"
+            className="btnProfile w-100 mt-3"
+            onClick={handleSaveChanges}
+          >
+            Save Changes
+          </button>
         </form>
       </div>
-      <button type="submit" className="btnProfile w-100 mt-3"  onClick={handleSaveChanges}>Save Changes</button>
     </div>
   );
 };

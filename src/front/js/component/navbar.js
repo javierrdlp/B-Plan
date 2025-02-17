@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import logoLetras from "../../img/logo_letras.png"
 
 import { Link } from "react-router-dom";
@@ -6,7 +6,19 @@ import { Link } from "react-router-dom";
 
 export const Navbar = () => {
 	const [profileImage, setProfileImage] = useState("https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png");
-
+	useEffect(() => {
+		const updateProfileImage = () => {
+		  const storedProfileImage = localStorage.getItem("profileImage");
+		  if (storedProfileImage) {
+			setProfileImage(storedProfileImage);
+		  }
+		};
+		updateProfileImage();
+		window.addEventListener("storage", updateProfileImage);
+		return () => {
+		  window.removeEventListener("storage", updateProfileImage);
+		};
+	  }, []);
 	return (
 		<nav className="navbar navbar-light" style={{ backgroundColor: "#67ABB8"}}>
 			<div className="container">
