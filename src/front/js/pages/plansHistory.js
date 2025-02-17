@@ -9,22 +9,26 @@ export const PlansHistory = () => {
   const { store, actions } = useContext(Context);
   const navigate = useNavigate();
 
+  
   const [profileImage, setProfileImage] = useState(
-    "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
+    localStorage.getItem("profileImage") || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
   );
   const [backgroundImage, setBackgroundImage] = useState(
-    "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww"
+    localStorage.getItem("backgroundImage") || "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww"
   );
 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
 
+ 
   const handleProfileImageChange = (event) => {
     const archivo = event.target.files[0];
     if (archivo) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        setProfileImage(e.target.result);
+        const newProfileImage = e.target.result;
+        setProfileImage(newProfileImage);
+        localStorage.setItem("profileImage", newProfileImage);  
       };
       reader.readAsDataURL(archivo);
     }
@@ -35,14 +39,32 @@ export const PlansHistory = () => {
     if (archivo) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        setBackgroundImage(e.target.result);
+        const newBackgroundImage = e.target.result;
+        setBackgroundImage(newBackgroundImage);
+        localStorage.setItem("backgroundImage", newBackgroundImage); 
       };
       reader.readAsDataURL(archivo);
     }
   };
 
+ 
   useEffect(() => {
-    document.title = "History Plans";
+    const updateImagesFromStorage = () => {
+      const storedProfileImage = localStorage.getItem("profileImage");
+      const storedBackgroundImage = localStorage.getItem("backgroundImage");
+
+      if (storedProfileImage) setProfileImage(storedProfileImage);
+      if (storedBackgroundImage) setBackgroundImage(storedBackgroundImage);
+    };
+    window.addEventListener("storage", updateImagesFromStorage);
+    updateImagesFromStorage();
+    return () => {
+      window.removeEventListener("storage", updateImagesFromStorage);
+    };
+  }, []); 
+
+  useEffect(() => {
+    document.title = "Plans History";
   }, []);
 
   const handleProfileButtonClick = () => {
@@ -70,6 +92,7 @@ export const PlansHistory = () => {
     { date: "2023-11-05", title: "History Plan F" },
   ];
 
+  
   const chunkPlans = (plans, chunkSize) => {
     const result = [];
     for (let i = 0; i < plans.length; i += chunkSize) {
@@ -81,8 +104,7 @@ export const PlansHistory = () => {
   const groupedPlans = chunkPlans(plansHistory, 4);
 
   return (
-    <div className="container mt-4" style={{ height: "80vh"}}>
-      
+    <div className="container mt-4" style={{ height: "80vh" }}>
       <div
         id="profileBackground"
         className="mb-3 position-relative"
@@ -109,7 +131,6 @@ export const PlansHistory = () => {
         </button>
       </div>
 
-      
       <div className="d-flex justify-content-center mb-4">
         <div className="position-relative">
           {!profileImage ? (
@@ -154,15 +175,8 @@ export const PlansHistory = () => {
           </button>
         </div>
       </div>
-
-      
-      <div className="text-center mb-4">
-        <h4>{store.user?.name || "User Name"}</h4> 
-      </div>
-
       <hr className="my-4" />
 
-     
       <div className="row text-center mb-4">
         <div className="col">
           <button
@@ -174,7 +188,6 @@ export const PlansHistory = () => {
         </div>
         <div className="col">
           <button
-            onClick={handleActivePlansClick}
             className="btnProfile w-100"
           >
             Active plans
@@ -182,6 +195,7 @@ export const PlansHistory = () => {
         </div>
         <div className="col">
           <button
+            onClick={handleActivePlansClick}
             className="btnProfile w-100"
           >
             History
@@ -197,9 +211,6 @@ export const PlansHistory = () => {
           borderRadius: "10px",
         }}
       >
-        
-
-        
         <Carousel interval={5000} indicators={false}>
           {groupedPlans.map((group, index) => (
             <Carousel.Item key={index}>
@@ -235,7 +246,6 @@ export const PlansHistory = () => {
         </Carousel>
       </div>
 
-      
       <input
         type="file"
         ref={profileFileInputRef}
