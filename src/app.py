@@ -4,7 +4,7 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 import os
 from datetime import datetime
 from pytz import timezone
-from flask import Flask, request, jsonify, url_for, send_from_directory
+from flask import Flask, request, jsonify, url_for, send_from_directory, render_template
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
@@ -424,34 +424,24 @@ import os
 def upload_profile_image():
     user_email = get_jwt_identity()
     user = User.query.filter_by(email=user_email).first()
-    
     if user is None:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
-
-    # Verificar si la solicitud tiene un archivo
     if 'file' not in request.files:
         return jsonify({'msg': 'No se adjuntó ninguna imagen'}), 400
-
     file = request.files['file']
-    
-    # Si no hay archivo, se retorna un error
     if file.filename == '':
         return jsonify({'msg': 'No se adjuntó ninguna imagen'}), 400
-
-    # Guardar la imagen con un nombre seguro
     filename = secure_filename(file.filename)
     filepath = os.path.join('uploads', filename)
     
     file.save(filepath)
-    
-    # Actualizar la imagen de perfil del usuario
     user.image = filepath
     db.session.commit()
 
     return jsonify({'msg': 'Imagen subida correctamente', 'image_url': filepath}), 200
 
 
-# this only runs if `$ python src/main.py` is executed
+
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
     app.run(host='0.0.0.0', port=PORT, debug=True)

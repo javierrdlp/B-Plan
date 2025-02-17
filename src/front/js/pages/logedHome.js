@@ -4,7 +4,7 @@ import "../../styles/logedHome.css";
 import PlanCards from "../component/planCard";
 import { Context } from '../store/appContext';
 
-export const LogedHome = () => {
+const LogedHome = () => {
     const [backgroundImage, setBackgroundImage] = useState("https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBwYW50YWxsYSUyMGRlJTIwY29sb3Jlc3xlbnwwfHwwfHx8MA==");
     const navigate = useNavigate();
     const { store, actions } = useContext(Context);
