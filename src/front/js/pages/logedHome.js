@@ -130,3 +130,6 @@ export const LogedHome = () => {
         </div>
     );
 };
+
+export default LogedHome;
+

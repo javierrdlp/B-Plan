@@ -128,6 +128,26 @@ const getState = ({ getStore, getActions, setStore }) => {
 				} catch (error) {
 					console.error("Error trayendo planes:", error);
 					return false;
+
+				}
+			},			
+
+			getCategories: async () => {
+				try {
+				  const resp = await fetch(process.env.BACKEND_URL + "/categories", {
+					method: "GET",
+					headers: {
+					  "Content-Type": "application/json",
+					},
+				  });
+				  if (!resp.ok) {
+					throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+				  }
+			  
+				  const data = await resp.json();
+				  setStore({ categories: data });
+				} catch (error) {
+				  console.error("Error al obtener categorías:", error);
 				}
 			},
 
@@ -170,12 +190,43 @@ const getState = ({ getStore, getActions, setStore }) => {
 						} catch (error) {
 							console.error("Error al crear el plan:", error);
 							throw error;
-						}
-
-					},
-				
-			}
-		}
+						}	          
+			},
+      
+			deleteUser: async () => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token de autenticación");
+			
+					const isValidToken = await getActions().private();
+					if (!isValidToken) {
+						throw new Error("Token no válido o expirado");
+					}
+			
+					const resp = await fetch(process.env.BACKEND_URL + "/user/profile", {
+						method: "DELETE",
+						headers: {
+							"Content-Type": "application/json",
+							"Authorization": "Bearer " + token,
+						},
+					});
+			
+					if (!resp.ok) {
+						const errorData = await resp.json();
+						throw new Error(errorData.message || "Error al eliminar el usuario");
+					}
+			
+					const data = await resp.json();
+					console.log("Usuario eliminado:", data);
+					localStorage.removeItem("token");
+					setStore({ token: null, user: null });
+					return data;
+				} catch (error) {
+					console.error("Error al eliminar el usuario:", error);
+					throw error;
+				}
+			},      
+		
 	};
 
 export default getState;
