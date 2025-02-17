@@ -152,8 +152,8 @@ const NewPlan = () => {
       date: formData.date,
       start_time: formData.startTime,
       end_time: formData.endTime,
-      latitude: coordinates.lat,
       longitude: coordinates.lng,
+      latitude: coordinates.lat,
       category_id: formData.category,
       image: selectedImg,
     };

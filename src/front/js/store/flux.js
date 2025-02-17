@@ -15,7 +15,8 @@ const getState = ({ getStore, getActions, setStore }) => {
 				}
 			],
 			plans: [],
-			activePlans: []
+			activePlans: [],
+			plansHistory: [],
 			userProfile: {}
 		},
 		actions: {
@@ -149,27 +150,28 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 			createPlan: async (planData) => {
 				try {
-					const token = localStorage.getItem("token");
-					if (!token) throw new Error("No hay token de autenticación");
-
-					const resp = await fetch(process.env.BACKEND_URL + "/plans", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"Authorization": "Bearer " + token,
-						},
-						body: JSON.stringify(planData),
-					});
-					if (!resp.ok) throw new Error("Error al crear el plan");
-
-					const data = await resp.json();
-					console.log("Plan creado:", data);
-					return data;
+				  const token = localStorage.getItem("token");
+				  if (!token) throw new Error("No hay token de autenticación");
+			  
+				  const resp = await fetch(process.env.BACKEND_URL + "/plans", {
+					method: "POST",
+					headers: {
+					  "Content-Type": "application/json",
+					  "Authorization": "Bearer " + token,
+					},
+					body: JSON.stringify(planData),
+				  });
+			  
+				  if (!resp.ok) throw new Error("Error al crear el plan");
+			  
+				  const data = await resp.json();
+				  console.log("Plan creado:", data);
+				  return data;
 				} catch (error) {
-					console.error("Error al crear el plan:", error);
-					throw error;
+				  console.error("Error al crear el plan:", error);
+				  throw error;
 				}
-			},
+			  },
 
 			deleteUser: async () => {
 				try {
@@ -247,6 +249,25 @@ const getState = ({ getStore, getActions, setStore }) => {
 				} catch (error) {
 					console.error("Error al actualizar el perfil:", error);
 					throw error;
+				}
+			},
+			getPlansHistory: async () => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token disponible");
+			
+					const resp = await fetch(process.env.BACKEND_URL + "/plans/history", {
+						headers: {
+							"Authorization": `Bearer ${token}`
+						}
+					});
+			
+					if (!resp.ok) throw new Error("Error al obtener el historial de planes");
+			
+					const data = await resp.json();
+					setStore({ plansHistory: data.plans });
+				} catch (error) {
+					console.error("Error obteniendo el historial de planes:", error);
 				}
 			},
 		}

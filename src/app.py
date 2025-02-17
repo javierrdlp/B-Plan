@@ -230,12 +230,14 @@ def create_plan():
         return jsonify({'msg': 'El campo end_time es obligatorio'}), 400
     if 'category_id' not in body:
         return jsonify({'msg': 'El campo category_id es obligatorio'}), 400
+    
+    latitude = body.get('latitude')
+    longitude = body.get('longitude')
 
     user = User.query.filter_by(email=user_id).first()
     if not user:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
 
-    # Create the new plan
     new_plan = Plan(
         name=body['name'],
         people=body['people'],
@@ -244,12 +246,15 @@ def create_plan():
         end_time=body['end_time'],
         category_id=body['category_id'],
         creator_id=user.id, 
+        latitude=latitude, 
+        longitude=longitude, 
     )
 
     db.session.add(new_plan)
     db.session.commit()
 
     return jsonify({'msg': 'Plan creado exitosamente', 'plan': new_plan.serialize()}), 201
+
 
 
 @app.route('/plans', methods=['GET'])
@@ -396,13 +401,25 @@ def status_plan(plan_id):
 @jwt_required()
 def plan_history():
     user_email = get_jwt_identity()
+    print(f"Usuario autenticado: {user_email}") 
     user = User.query.filter_by(email=user_email).first()
     if user is None:
+        print("Usuario no encontrado")  
         return jsonify({'msg': 'Usuario no encontrado'}), 404
-    plans = Plan.query.join(UserPlan).filter(UserPlan.user_id == user.id, Plan.status == "closed").all()
-    if not plans:
+    user_plans = UserPlan.query.filter_by(user_id=user.id).all()
+    print(f"Registros de UserPlan para el usuario: {user_plans}")
+    if not user_plans:
+        print("Este usuario no tiene planes asociados en UserPlan.")
+        return jsonify({'msg': 'Este usuario no tiene planes asociados en UserPlan.'}), 404
+    plans_with_join = Plan.query.join(UserPlan, UserPlan.plan_id == Plan.id).filter(
+        UserPlan.user_id == user.id, Plan.status == "closed"
+    ).all()
+    
+    print(f"Planes encontrados con estado 'closed': {plans_with_join}")
+    if not plans_with_join:
+        print("No hay planes cerrados para este usuario.") 
         return jsonify({'msg': 'No hay planes cerrados en el historial del usuario'}), 404
-    return jsonify({'msg': 'ok', 'plans': [plan.serialize() for plan in plans]}), 200
+    return jsonify({'msg': 'ok', 'plans': [plan.serialize() for plan in plans_with_join]}), 200
 
 @app.route('/categories', methods=['GET'])
 def get_categories():
