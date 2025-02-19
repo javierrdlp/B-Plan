@@ -155,6 +155,7 @@ const NewPlan = () => {
       longitude: coordinates.lng,
       latitude: coordinates.lat,
       category_id: formData.category,
+      description: formData.description,
       image: selectedImg,
     };
   
