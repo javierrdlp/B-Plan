@@ -1,11 +1,14 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/logedHome.css";
 import PlanCards from "../component/planCard";
 import { Context } from '../store/appContext';
 
 const LogedHome = () => {
-    const [backgroundImage, setBackgroundImage] = useState("https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBwYW50YWxsYSUyMGRlJTIwY29sb3Jlc3xlbnwwfHwwfHx8MA==");
+    const [backgroundImage, setBackgroundImage] = useState(
+        localStorage.getItem("backgroundImage") || "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBwYW50YWxsYSUyMGRlJTIwY29sb3Jlc3xlbnwwfHwwfHx8MA=="
+    );
+
     const navigate = useNavigate();
     const { store, actions } = useContext(Context);
 
@@ -14,7 +17,9 @@ const LogedHome = () => {
         document.getElementById("formDate").setAttribute("min", today);
     }, []);
 
+
     const [searchRules, setNewSearchRules] = useState({ date: "", people: 0 });
+
 
     const [filteredPlans, setFilteredPlans] = useState([]);
 
@@ -26,6 +31,7 @@ const LogedHome = () => {
                 return data.results[0].formatted.split(", ").slice(0, 3).join(", ") || "Ubicación desconocida";
             } else {
                 return "No results from API";
+
             }
         } catch (error) {
             console.error("Error fetching address:", error);
@@ -66,6 +72,36 @@ const LogedHome = () => {
         fetchPlans();
     }, []);
 
+    const videoUrls = [
+        "https://videos.pexels.com/video-files/852122/852122-hd_1920_1080_30fps.mp4",
+        "https://videos.pexels.com/video-files/1692701/1692701-uhd_2560_1440_30fps.mp4",
+        "https://videos.pexels.com/video-files/2894895/2894895-uhd_2560_1440_24fps.mp4",
+        "https://videos.pexels.com/video-files/852038/852038-hd_1920_1080_30fps.mp4",
+        "https://videos.pexels.com/video-files/3205451/3205451-uhd_2560_1440_30fps.mp4"
+    ];
+
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+    const videoRef = useRef(null);
+
+    
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            setCurrentVideoIndex(prevIndex => (prevIndex + 1) % videoUrls.length);
+        }, 5000);  
+
+        return () => clearInterval(intervalId); 
+    }, []);
+
+    useEffect(() => {
+        const videoElement = videoRef.current;
+
+        if (videoElement) {
+            videoElement.play();  
+            videoElement.currentTime = 0;  
+        }
+    }, [currentVideoIndex]); 
+
+
     return (
         <div className="container justify-content-center mt-5" style={{ minheight: "80vh" }}>
             <div id="profileBackground" className="mb-3 position-relative" style={{
@@ -76,11 +112,13 @@ const LogedHome = () => {
                 backgroundPosition: "center center",
             }}>
             </div>
+
             <div className="row justify-content-center mt-5">
                 <button id="create-plan-button" type="button" className="btn btn-secondary" onClick={handleNewPlanClick}>
                     Create Plan
                 </button>
             </div>
+
             <div id="plan-finder" className="row justify-content-center mt-5 p-3">
                 <div className="text-center">
                     <h1 className="text">Plan finder</h1>
@@ -107,9 +145,36 @@ const LogedHome = () => {
                     ))}
                 </div>
             </div>
+           
+            <div className="mt-5"
+                id="videoContainer"
+                style={{
+                    height: "300px",  
+                    position: "relative",
+                    overflow: "hidden",
+                    border: "5px solid #262626",  
+                    borderRadius: "15px",
+                }}
+            >
+                <video
+                    ref={videoRef} 
+                    src={videoUrls[currentVideoIndex]}
+                    type="video/mp4"
+                    autoPlay
+                    muted
+                    loop  
+                    style={{
+                        objectFit: "cover", 
+                        width: "100%",
+                        height: "100%",
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                    }}
+                />
+            </div>
         </div>
     );
 };
 
 export default LogedHome;
-

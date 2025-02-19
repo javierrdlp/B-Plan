@@ -1,13 +1,18 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { Context } from "../store/appContext";
 import { useNavigate } from "react-router-dom";
-import { Carousel } from "react-bootstrap"; 
+import { Carousel } from "react-bootstrap";
 import "../../styles/home.css";
 import "../../styles/profile.css";
 
 export const ActivePlans = () => {
   const { store, actions } = useContext(Context);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = "Active Plans";
+    actions.getActivePlans();
+  }, []);
 
   const [profileImage, setProfileImage] = useState(
     "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
@@ -53,17 +58,17 @@ export const ActivePlans = () => {
     backgroundFileInputRef.current.click();
   };
 
-  
+
   const handleProfileClick = () => {
     navigate("/profile");
   };
 
-  
+
   const handleHistoryClick = () => {
     navigate("/plans-history");
   };
 
-  
+
   const activePlans = [
     { date: "2024-07-10", title: "Active Plan A" },
     { date: "2024-08-12", title: "Active Plan B" },
@@ -73,7 +78,7 @@ export const ActivePlans = () => {
     { date: "2024-12-10", title: "Active Plan F" },
   ];
 
-  
+
   const chunkPlans = (plans, chunkSize) => {
     const result = [];
     for (let i = 0; i < plans.length; i += chunkSize) {
@@ -82,11 +87,20 @@ export const ActivePlans = () => {
     return result;
   };
 
-  const groupedPlans = chunkPlans(activePlans, 4);
+  const groupedPlans = chunkPlans(store.activePlans, 4);
+
+  const handleDeleteUser = async () => {
+    try {
+      await actions.deleteUser();
+      navigate("/");
+    } catch (error) {
+      console.error("Error al eliminar el usuario:", error);
+    }
+  };
 
   return (
-    <div className="container mt-4" style={{ height: "80vh"}}>
-      
+    <div className="container mt-4" style={{ height: "80vh" }}>
+
       <div
         id="profileBackground"
         className="mb-3 position-relative"
@@ -98,6 +112,28 @@ export const ActivePlans = () => {
           backgroundPosition: "center center",
         }}
       >
+        <button type="button" class="mt-3 ms-3 border-3 border-dark btn btn-danger" data-bs-toggle="modal" data-bs-target="#Modal">
+          Delete Account
+        </button>
+        <div class="modal fade" id="Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Are you sure you want to delete the account?</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                With this you confirm that you want to delete your account forever.
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="mt-1 ms-1 border-3 border-dark btn btn-danger" onClick={handleDeleteUser}>Delete Account</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <button
           onClick={handleBackgroundButtonClick}
           className="btnProfile position-absolute"
@@ -113,7 +149,7 @@ export const ActivePlans = () => {
         </button>
       </div>
 
-      
+
       <div className="d-flex justify-content-center mb-4">
         <div className="position-relative">
           {!profileImage ? (
@@ -159,14 +195,14 @@ export const ActivePlans = () => {
         </div>
       </div>
 
-      
+
       <div className="text-center mb-4">
-        <h4>{store.user?.name || "User Name"}</h4> 
+        <h4>{store.user?.name || "User Name"}</h4>
       </div>
 
       <hr className="my-4" />
 
-      
+
       <div className="row text-center mb-4">
         <div className="col">
           <button
@@ -178,7 +214,7 @@ export const ActivePlans = () => {
         </div>
         <div className="col">
           <button
-            
+
             className="btnProfile w-100"
           >
             Active plans
@@ -193,68 +229,44 @@ export const ActivePlans = () => {
           </button>
         </div>
       </div>
-      <h4 className="text-center mb-4">Active Plans</h4>
-      <div
-        style={{
-          backgroundColor: "#67ABB8",
-          padding: "20px",
-          borderRadius: "10px",
-        }}
-      >
-        
-
-        
-        <Carousel interval={5000} indicators={false}>
-          
-          {groupedPlans.map((group, index) => (
-            <Carousel.Item key={index}>
-              <div className="row justify-content-center">
-                {group.map((plan, idx) => (
-                  <div
-                    key={idx}
-                    className="col-3" 
-                    style={{
-                      padding: "10px",
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <div
-                      className="card"
-                      style={{
-                        backgroundColor: "#F15B40",
-                        padding: "20px",
-                        borderRadius: "8px",
-                        width: "100%",
-                        boxSizing: "border-box",
-                      }}
-                    >
-                      <h5 className="text-white">{plan.title}</h5>
-                      <p className="text-white">Plan Date: {plan.date}</p>
-                    </div>
+      <div className="container mt-4" style={{ height: "80vh" }}>
+        <h4 className="text-center mb-4 text-dark">Active Plans</h4>
+        <div style={{ backgroundColor: "#67ABB8", padding: "20px", borderRadius: "15px", boxShadow: "0 4px 8px rgba(0,0,0,0.2)" }}>
+          <Carousel interval={5000} indicators={false}>
+            {groupedPlans.length > 0 ? (
+              groupedPlans.map((group, index) => (
+                <Carousel.Item key={index}>
+                  <div className="row justify-content-center">
+                    {group.map((plan, idx) => (
+                      <div key={idx} className="col-md-4 col-sm-6" style={{ padding: "10px", display: "flex", justifyContent: "center" }}>
+                        <div className="card" style={{
+                          backgroundColor: "#F15B40", padding: "20px", borderRadius: "15px", width: "100%", boxSizing: "border-box", transition: "transform 0.3s ease"
+                        }}>
+                          <div className="card-body text-white">
+                            <h5 className="card-title">{plan.name}</h5>
+                            <p className="card-text">Date: {plan.date}</p>
+                            <p className="card-text">Time: {plan.start_time} - {plan.end_time}</p>
+                            <p className="card-text">Location: {plan.latitude}, {plan.longitude}</p>
+                            <p className="card-text">People: {plan.people_active} / {plan.people} people active</p>
+                            <div className="d-flex justify-content-between align-items-center mt-3">
+                              <p className="text-white">Created by: {plan.creator_name}</p>
+                              <span className={`badge ${plan.status === "open" ? "bg-success" : "bg-danger"}`}>
+                                {plan.status === "open" ? "Open" : "Full"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </Carousel.Item>
-          ))}
-        </Carousel>
+                </Carousel.Item>
+              ))
+            ) : (
+              <p className="text-center text-white">No active plans found.</p>
+            )}
+          </Carousel>
+        </div>
       </div>
-
-      
-      <input
-        type="file"
-        ref={profileFileInputRef}
-        style={{ display: "none" }}
-        accept="image/*"
-        onChange={handleProfileImageChange}
-      />
-      <input
-        type="file"
-        ref={backgroundFileInputRef}
-        style={{ display: "none" }}
-        accept="image/*"
-        onChange={handleBackgroundImageChange}
-      />
     </div>
   );
 };
