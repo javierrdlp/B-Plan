@@ -14,10 +14,13 @@ const getState = ({ getStore, getActions, setStore }) => {
 					initial: "white"
 				}
 			],
-			plans: [],
+			plans: [],			
+			showedPlan: {},
+			planAddress: "",
 			activePlans: [],
 			plansHistory: [],
 			userProfile: {}
+
 		},
 		actions: {
 
@@ -117,17 +120,18 @@ const getState = ({ getStore, getActions, setStore }) => {
 						method: "GET",
 						headers: { "Content-Type": "application/json" }
 					});
-					console.log(resp);
+					
 					const data = await resp.json();
-
 					setStore({ plans: data });
 					const store = getStore();
-					console.log(store.plans);
+					console.log("planes")
+					console.log(store.plans)
+					
 				} catch (error) {
 					console.error("Error trayendo planes:", error);
 					return false;
 				}
-			},
+			},			
 
 			getCategories: async () => {
 				try {
@@ -225,6 +229,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                     console.error("Error obteniendo planes activos:", error);
                 }
             },
+
 			saveProfile: async (profileData) => {
 				try {
 					const token = localStorage.getItem("token");
@@ -251,6 +256,38 @@ const getState = ({ getStore, getActions, setStore }) => {
 					throw error;
 				}
 			},
+
+			joinPlan: async(planId) => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token de autenticación");
+
+					const resp = await fetch(process.env.BACKEND_URL + `/plans/${planId}/join`, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"Authorization": "Bearer " + token,
+						}
+					});
+					const data = await resp.json();
+
+					if (!resp.ok) throw new Error(data.msg || "Error al unirse al plan");
+			
+					return data;
+				} catch (error) {
+					console.error("Error al unirse al plan:", error);
+					throw error;
+				}
+
+			},
+
+			setShowedPlan: (plan) => {
+				setStore({showedPlan: plan})
+			},
+			setPlanAddress: (address) => {
+				setStore({planAddress: address})
+			},
+
 			getPlansHistory: async () => {
 				try {
 					const token = localStorage.getItem("token");
@@ -270,6 +307,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error("Error obteniendo el historial de planes:", error);
 				}
 			},
+
 		}
 	};
 };
