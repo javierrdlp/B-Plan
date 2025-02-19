@@ -98,9 +98,26 @@ export const ActivePlans = () => {
     }
   };
 
-  return (
-    <div className="container mt-4" style={{ height: "80vh" }}>
+  const handleDeletePlan = async (planId) => {
+    const userId = store.user?.id;
+    if (!planId) {
+      console.error("Plan ID no válido");
+      return;
+    }
+    try {
+      await actions.deletePlan(planId, userId);
+    } catch (error) {
+      console.error("Error al eliminar el plan:", error);
+    }
+  };
 
+  useEffect(() => {
+    actions.getProfile();
+
+  }, []);
+
+  return (
+    <div className="container mt-4" style={{ minHeight: "80vh" }}>
       <div
         id="profileBackground"
         className="mb-3 position-relative"
@@ -237,27 +254,55 @@ export const ActivePlans = () => {
               groupedPlans.map((group, index) => (
                 <Carousel.Item key={index}>
                   <div className="row justify-content-center">
-                    {group.map((plan, idx) => (
-                      <div key={idx} className="col-md-4 col-sm-6" style={{ padding: "10px", display: "flex", justifyContent: "center" }}>
-                        <div className="card" style={{
-                          backgroundColor: "#F15B40", padding: "20px", borderRadius: "15px", width: "100%", boxSizing: "border-box", transition: "transform 0.3s ease"
-                        }}>
-                          <div className="card-body text-white">
-                            <h5 className="card-title">{plan.name}</h5>
-                            <p className="card-text">Date: {plan.date}</p>
-                            <p className="card-text">Time: {plan.start_time} - {plan.end_time}</p>
-                            <p className="card-text">Location: {plan.latitude}, {plan.longitude}</p>
-                            <p className="card-text">People: {plan.people_active} / {plan.people} people active</p>
-                            <div className="d-flex justify-content-between align-items-center mt-3">
-                              <p className="text-white">Created by: {plan.creator_name}</p>
-                              <span className={`badge ${plan.status === "open" ? "bg-success" : "bg-danger"}`}>
-                                {plan.status === "open" ? "Open" : "Full"}
-                              </span>
+                    {group.map((plan, idx) => {
+                      console.log("Plan:", plan);
+                      console.log("User ID:", store.user?.id);
+                      console.log("Plan Creator ID:", plan.creator.id);
+                      return (
+                        <div key={idx} className="col-md-4 col-sm-6" style={{ padding: "10px", display: "flex", justifyContent: "center" }}>
+                          <div className="card" style={{
+                            backgroundColor: "#F15B40", padding: "20px", borderRadius: "15px", width: "100%", boxSizing: "border-box", transition: "transform 0.3s ease"
+                          }}>
+                            <div className="card-body text-white">
+                              <h5 className="card-title">{plan.name}</h5>
+                              <p className="card-text">Date: {plan.date}</p>
+                              <p className="card-text">Time: {plan.start_time} - {plan.end_time}</p>
+                              <p className="card-text">Location: {plan.latitude}, {plan.longitude}</p>
+                              <p className="card-text">People: {plan.people_active} / {plan.people} people active</p>
+                              <div className="d-flex justify-content-between align-items-center mt-3">
+                                <p className="text-white">Created by: {plan.creator_name}</p>
+                                <span className={`badge ${plan.status === "open" ? "bg-success" : "bg-danger"}`}>
+                                  {plan.status === "open" ? "Open" : "Full"}
+                                </span>
+                              </div>
+                              <div className="d-flex justify-content-between mt-3">
+                                <div className="d-flex justify-content-between mt-3">
+                                  {store.user?.id === plan.creator.id ? (
+                                    // Si el ID del usuario logueado es igual al del creador
+                                    <button
+                                      className="btn btn-danger"
+                                      onClick={() => handleDeletePlan(plan.id)}
+                                    >
+                                      Eliminar
+                                    </button>
+                                  ) : (
+                                    // Si el ID del usuario logueado es diferente al del creador
+                                    <button
+                                      className="btn btn-warning"
+                                      onClick={() => actions.leavePlan(plan.id)}
+                                    >
+                                      Salir
+                                    </button>
+                                  )}
+                                </div>
+
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
+
                   </div>
                 </Carousel.Item>
               ))

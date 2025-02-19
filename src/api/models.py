@@ -58,6 +58,7 @@ class Plan(db.Model):
     __tablename__ = 'plan'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=True)
     people = db.Column(db.Integer, nullable=False)
     people_active = db.Column(db.Integer, nullable=False, default=0)
     date = db.Column(db.Date, nullable=False)
@@ -82,6 +83,7 @@ class Plan(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "description": self.description,
             "people": self.people,
             "people_active": self.people_active,
             "date": self.date.isoformat() if self.date else None,

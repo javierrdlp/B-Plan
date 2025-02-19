@@ -4,7 +4,7 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 import os
 from datetime import datetime
 from pytz import timezone
-from flask import Flask, request, jsonify, url_for, send_from_directory, render_template
+from flask import Flask, request, jsonify, url_for, send_from_directory, render_template, abort
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
@@ -32,7 +32,7 @@ app = Flask(__name__)
 
 app.config.update(dict(
     DEBUG = False,
-    MAIL_SERVER = 'smpt.gmail.com',
+    MAIL_SERVER = 'smtp.gmail.com',
     MAIL_PORT = 587,
     MAIL_USE_TL = True,
     MAIL_USE_SSL = False,
@@ -248,11 +248,12 @@ def create_plan():
         creator_id=user.id, 
         latitude=latitude, 
         longitude=longitude, 
-    )
-
+        description=body['description'])
     db.session.add(new_plan)
     db.session.commit()
-
+    new_user_plan = UserPlan(user_id=user.id, plan_id=new_plan.id)
+    db.session.add(new_user_plan)
+    db.session.commit()
     return jsonify({'msg': 'Plan creado exitosamente', 'plan': new_plan.serialize()}), 201
 
 
@@ -298,13 +299,22 @@ def put_plan(plan_id):
     return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
 
 @app.route('/plans/<int:plan_id>', methods=['DELETE'])
+@jwt_required()
 def delete_plan(plan_id):
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
     plan = Plan.query.get(plan_id)
-    if plan is None:
-        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    if not plan:
+        abort(404, description=f'El plan con id {plan_id} no existe')
+    if plan.creator_id != user.id:
+        abort(403, description='No tienes permiso para eliminar este plan')
+    user_plans = UserPlan.query.filter_by(plan_id=plan_id).all()
+    for user_plan in user_plans:
+        db.session.delete(user_plan)
     db.session.delete(plan)
     db.session.commit()
-    return jsonify({'msg': 'Plan eliminado'}), 200
+    return jsonify({'msg': 'Plan eliminado exitosamente'}), 200
+
 
 @app.route('/plans/active', methods=['GET'])
 @jwt_required()
@@ -317,11 +327,11 @@ def get_active_plans():
     print(f'Fecha de hoy en España: {today}')
     created_plans = Plan.query.filter(
         Plan.creator_id == user.id,
-        Plan.date > today
+        Plan.date >= today 
     ).all()
     joined_plans = db.session.query(Plan).join(UserPlan).filter(
         UserPlan.user_id == user.id,
-        Plan.date > today
+        Plan.date >= today
     ).all()
     all_plans = list({plan.id: plan for plan in created_plans + joined_plans}.values())
     if not all_plans:
@@ -364,38 +374,42 @@ def join_plan(plan_id):
 def leave_plan(plan_id):
     user_email = get_jwt_identity()
     user = User.query.filter_by(email=user_email).first()
-    if user is None:
-        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    if not user:
+        abort(404, description='Usuario no encontrado')
     plan = Plan.query.get(plan_id)
-    if plan is None:
-        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    if not plan:
+        abort(404, description=f'El plan con id {plan_id} no existe')
     user_plan = UserPlan.query.filter_by(user_id=user.id, plan_id=plan.id).first()
-    if user_plan is None:
-        return jsonify({'msg': 'No estás unido a este plan'}), 400
+    if not user_plan:
+        abort(400, description='No estás unido a este plan')
     db.session.delete(user_plan)
-    plan.people_active -= 1
+    plan.people_active = max(0, plan.people_active - 1) 
     if plan.status == "full" and plan.people_active < plan.people:
         plan.status = "open"
     db.session.commit()
-    return jsonify({'msg': 'Has salido del plan:', 'plan': plan.serialize()}), 200
+    return jsonify({'msg': 'Has salido del plan', 'plan': plan.serialize()}), 200
 
 spain_tz = timezone('Europe/Madrid')
 
 @app.route('/plans/<int:plan_id>/status', methods=['PUT'])
 @jwt_required()
 def status_plan(plan_id):
+    spain_tz = datetime.now().astimezone().tzinfo
+    now = datetime.now(spain_tz) 
     plan = Plan.query.get(plan_id)
     if plan is None:
         return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
-    current_time = datetime.now(spain_tz).time()
-    if plan.end_time <= current_time:
+    plan_end_datetime = datetime.combine(plan.date, plan.end_time) 
+    if plan_end_datetime < now:  
+        plan.status = "closed"
+    elif plan.date == now.date() and plan.end_time <= now.time():
         plan.status = "closed"
     elif plan.people_active >= plan.people:
         plan.status = "full"
     else:
         plan.status = "open"
     db.session.commit()
-    return jsonify({'msg': f'El estado del plan con id {plan_id} ahora esta {plan.status}'}), 200
+    return jsonify({'msg': f'El estado del plan con id {plan_id} ahora está {plan.status}'}), 200
 
 @app.route('/plans/history', methods=['GET'])
 @jwt_required()
@@ -421,17 +435,18 @@ def plan_history():
         return jsonify({'msg': 'No hay planes cerrados en el historial del usuario'}), 404
     return jsonify({'msg': 'ok', 'plans': [plan.serialize() for plan in plans_with_join]}), 200
 
+
 @app.route('/categories', methods=['GET'])
 def get_categories():
     categories = Categories.query.all()
-    return jsonify([category.serialize() for category in categories]), 200
+    return jsonify([{'id': category.id,'name': category.name,'image': category.image} for category in categories]), 200
 
-@app.route('/categories/<int:categories_id>', methods=['GET'])
-def get_categories_id(categories_id):
-    category = Categories.query.get(categories_id)
+@app.route('/categories/<int:category_id>', methods=['GET'])
+def get_category_by_id(category_id):
+    category = Categories.query.get(category_id)
     if category is None:
-        return jsonify({'msg': f'La categoria con id {categories_id} no existe'}), 404
-    return jsonify({'category': category.serialize()}), 200
+        return jsonify({'msg': f'La categoría con id {category_id} no existe'}), 404
+    return jsonify({'id': category.id,'name': category.name,'image': category.image}), 200
 
 @app.route('/send_mail', methods={'GET'})
 def send_mail():
@@ -468,8 +483,6 @@ def upload_profile_image():
     db.session.commit()
 
     return jsonify({'msg': 'Imagen subida correctamente', 'image_url': filepath}), 200
-
-
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))

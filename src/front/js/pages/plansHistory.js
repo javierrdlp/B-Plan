@@ -81,8 +81,17 @@ export const PlansHistory = () => {
     }
   };
 
+  const handleStatusChange = async (planId) => {
+    try {
+      await actions.updatePlanStatus(planId);
+      console.log('Se cambio el estado del plan');
+    } catch (error) {
+      console.error('Error al cambiar el estado del plan', error);
+    }
+  };
+
   return (
-    <div className="container mt-4" style={{ height: "80vh" }}>
+    <div className="container mt-4" style={{ minHeight: "80vh" }}>
       <div
         id="profileBackground"
         className="mb-3 position-relative"
