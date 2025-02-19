@@ -12,6 +12,7 @@ import { ActivePlans } from "./pages/activePlans";
 import NewPlan from './pages/newPlan';
 import JoinPlan from './pages/joinPlan';
 import LogedHome from './pages/logedHome';
+import ShowPlan from "./pages/showPlan";
 
 
 import { Navbar } from "./component/navbar";
@@ -62,6 +63,8 @@ const Layout = () => {
                         <Routes>
                             <Route element={<Home />} path="/" />                            
                             <Route element={<Profile />} path="/profile" />
+                            <Route element={<LogedHome />} path="/loged-home" />
+                            <Route path="/show-plan" element={<ShowPlan />} />
                             <Route path="/plans-history" element={<PlansHistory />} />
                             <Route path="/active-plans" element={<ActivePlans />} />
                             <Route path="/new-plan" element={<NewPlan />} />
@@ -75,16 +78,12 @@ const Layout = () => {
                 </BrowserRouter>
             </div>
         );
-    } else {
-
-
-        
+    } else {       
         
     return (
         <div>
             <BrowserRouter basename={basename}>
-                <ScrollToTop>
-                    <Navbar />
+                <ScrollToTop>                    
                     <Routes>
                         <Route element={<Home />} path="/" />
                         <Route element={<LogedHome />} path="/loged-home" />
