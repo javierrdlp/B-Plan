@@ -74,7 +74,7 @@ export const Home = () => {
     }
   };
 
-  // Video functionality
+  
   const videoUrls = [
     "https://videos.pexels.com/video-files/852122/852122-hd_1920_1080_30fps.mp4",
     "https://videos.pexels.com/video-files/1692701/1692701-uhd_2560_1440_30fps.mp4",
@@ -86,12 +86,12 @@ export const Home = () => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const videoRef = useRef(null);
 
-  // Preload the next video to avoid lag between transitions
+  
   useEffect(() => {
     const nextVideoUrl = videoUrls[(currentVideoIndex + 1) % videoUrls.length];
     const videoElement = document.createElement('video');
     videoElement.src = nextVideoUrl;
-    videoElement.load(); // Carga el siguiente video para evitar retrasos
+    videoElement.load(); 
   }, [currentVideoIndex]);
 
   useEffect(() => {
@@ -233,7 +233,7 @@ export const Home = () => {
         </div>
       </div>
 
-      {/* Agregar el componente de video directamente aquí */}
+      
       <div className="mt-5" id="videoContainer" style={{
         height: "300px",  
         position: "relative",
