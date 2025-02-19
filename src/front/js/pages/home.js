@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { Context } from "../store/appContext";
 import madrid from "../../img/madrid.jpg";
 import street from "../../img/madrid-calle.jpg";
@@ -48,8 +48,6 @@ export const Home = () => {
     }
   }, []);
   
-  
-
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -75,8 +73,43 @@ export const Home = () => {
       console.error('Error al intentar registrarse', error);
     }
   };
- 
-  
+
+  // Video functionality
+  const videoUrls = [
+    "https://videos.pexels.com/video-files/852122/852122-hd_1920_1080_30fps.mp4",
+    "https://videos.pexels.com/video-files/1692701/1692701-uhd_2560_1440_30fps.mp4",
+    "https://videos.pexels.com/video-files/2894895/2894895-uhd_2560_1440_24fps.mp4",
+    "https://videos.pexels.com/video-files/852038/852038-hd_1920_1080_30fps.mp4",
+    "https://videos.pexels.com/video-files/3205451/3205451-uhd_2560_1440_30fps.mp4"
+  ];
+
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const videoRef = useRef(null);
+
+  // Preload the next video to avoid lag between transitions
+  useEffect(() => {
+    const nextVideoUrl = videoUrls[(currentVideoIndex + 1) % videoUrls.length];
+    const videoElement = document.createElement('video');
+    videoElement.src = nextVideoUrl;
+    videoElement.load(); // Carga el siguiente video para evitar retrasos
+  }, [currentVideoIndex]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentVideoIndex(prevIndex => (prevIndex + 1) % videoUrls.length);
+    }, 5000);  
+
+    return () => clearInterval(intervalId); 
+  }, []);
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+
+    if (videoElement) {
+      videoElement.play();  
+      videoElement.currentTime = 0;  
+    }
+  }, [currentVideoIndex]); 
 
   return (
     <div className="container justify-content-center mt-5">
@@ -164,16 +197,15 @@ export const Home = () => {
                   <label htmlFor="text-password" className="col-form-label">Password:</label>
                   <input type="password" className="form-control" id="register-password" onChange={(e) => setPassword(e.target.value)} />
                 </div>
-				<div className="d-flex justify-content-center">
-            <button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Register</button>
-          </div>
+                <div className="d-flex justify-content-center">
+                  <button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Register</button>
+                </div>
               </form>
             </div>
           </div>
         </div>
       </div>
 
-      
       <div className="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModal" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
@@ -192,20 +224,42 @@ export const Home = () => {
                   <label htmlFor="text-password" className="col-form-label">Password:</label>
                   <input type="password" className="form-control" id="login-password" onChange={(e) => setPassword(e.target.value)} />
                 </div>
-				<div className="d-flex justify-content-center">
-				{isLoggedIn ? (<Link to={"/profile"}>   <button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Login</button></Link>) : (<button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Login</button>)}
-					 </div>
+                <div className="d-flex justify-content-center">
+                  {isLoggedIn ? (<Link to={"/profile"}>   <button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Login</button></Link>) : (<button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Login</button>)}
+                </div>
               </form>
             </div>
           </div>
         </div>
       </div>
 
-      
-        <>
-          <Link to="/new-plan" className="btn btn-primary">Go to New Plan</Link>
-        </>
-      
+      {/* Agregar el componente de video directamente aquí */}
+      <div className="mt-5" id="videoContainer" style={{
+        height: "300px",  
+        position: "relative",
+        overflow: "hidden",
+        border: "5px solid #262626",  
+        borderRadius: "15px",
+      }}>
+        <video
+          ref={videoRef} 
+          src={videoUrls[currentVideoIndex]}
+          type="video/mp4"
+          autoPlay
+          muted
+          loop  
+          style={{
+            objectFit: "cover", 
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0,
+          }}
+        />
+      </div>
+
+    
     </div>
   );
 };
