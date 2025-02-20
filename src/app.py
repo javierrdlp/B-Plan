@@ -412,6 +412,21 @@ def status_plan(plan_id):
     db.session.commit()
     return jsonify({'msg': f'El estado del plan con id {plan_id} ahora está {plan.status}'}), 200
 
+@app.route('/update_plans_status', methods=['PUT'])
+def update_plans_status():
+    now = datetime.now(spain_tz) 
+    plans_to_close = Plan.query.filter(
+        Plan.status != "closed", 
+        Plan.date <= now.date(),
+        Plan.end_time <= now.time()
+    ).all()
+    if not plans_to_close:
+        return jsonify({'msg': 'No hay planes para cerrar.'}), 200
+    for plan in plans_to_close:
+        plan.status = "closed"
+    db.session.commit() 
+    return jsonify({'msg': f'{len(plans_to_close)} planes actualizados a "closed".'}), 200
+
 @app.route('/plans/history', methods=['GET'])
 @jwt_required()
 def plan_history():

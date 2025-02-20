@@ -309,43 +309,28 @@ const getState = ({ getStore, getActions, setStore }) => {
 				try {
 					const token = localStorage.getItem("token");
 					if (!token) throw new Error("No hay token disponible");
-
-					// Obtén el store dentro de la acción usando getStore()
 					const store = getStore();
-
-					// Si activePlans no está disponible, asegúrate de manejarlo
 					const activePlans = store.activePlans || [];
-
-					// Obtén la fecha actual
 					const currentDate = new Date();
-
-					// Recorre los planes activos y actualiza su estado si ya han pasado la fecha de fin
 					for (const plan of activePlans) {
-						const endDate = new Date(plan.endDate);  // Suponiendo que plan.endDate es una cadena con formato adecuado
-
-						// Si la fecha de finalización del plan ha pasado, actualiza su estado a "closed"
+						const endDate = new Date(plan.endDate); 
 						if (endDate < currentDate) {
-							// Cambia el estado del plan a "closed"
 							await fetch(`${process.env.BACKEND_URL}/plans/${plan.id}/status`, {
 								method: "PUT",
 								headers: {
 									"Authorization": `Bearer ${token}`,
 									"Content-Type": "application/json"
 								},
-								body: JSON.stringify({ status: "closed" }),  // Enviamos la actualización del estado
+								body: JSON.stringify({ status: "closed" }), 
 							});
 						}
 					}
-
-					// Luego obtienes el historial de planes
 					const resp = await fetch(process.env.BACKEND_URL + "/plans/history", {
 						headers: {
 							"Authorization": `Bearer ${token}`
 						}
 					});
-
 					if (!resp.ok) throw new Error("Error al obtener el historial de planes");
-
 					const data = await resp.json();
 					setStore({ plansHistory: data.plans });
 				} catch (error) {
@@ -353,23 +338,36 @@ const getState = ({ getStore, getActions, setStore }) => {
 				}
 			},
 
-			updatePlanStatus: async (planId) => {
-				try {
-					const token = localStorage.getItem("token");
-					if (!token) throw new Error("No hay token disponible");
+			updatePlanStatus: async () => {
+                try {
+                    const token = localStorage.getItem("token");
+                    if (!token) {
+                        console.error("No token found!");
+                        return;
+                    }
 
-					await fetch(`${process.env.BACKEND_URL}/plans/${planId}/status`, {
-						method: 'PUT',
-						headers: {
-							'Authorization': `Bearer ${token}`,
-							'Content-Type': 'application/json'
-						}
-					});
-					getActions().getPlansHistory();
-				} catch (error) {
-					console.error("Error al actualizar el estado del plan:", error);
-				}
-			},
+                    const response = await fetch(`${process.env.BACKEND_URL}/update_plans_status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.msg || "Error al actualizar el estado de los planes");
+                    }
+
+                    const data = await response.json();
+                    console.log(data.msg);
+                    alert(data.msg);
+                    getActions().getPlansHistory(); 
+
+                } catch (error) {
+                    console.error("Error al actualizar el estado de los planes:", error);
+                }
+            },
 
 			deletePlan: async (planId, userId) => {
 				try {

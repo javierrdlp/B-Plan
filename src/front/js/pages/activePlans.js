@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
-import { Context } from "../store/appContext";
+import { Context, useActions } from "../store/appContext";
 import { useNavigate } from "react-router-dom";
 import { Carousel } from "react-bootstrap";
 import "../../styles/home.css";
@@ -8,11 +8,6 @@ import "../../styles/profile.css";
 export const ActivePlans = () => {
   const { store, actions } = useContext(Context);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    document.title = "Active Plans";
-    actions.getActivePlans();
-  }, []);
 
   const [profileImage, setProfileImage] = useState(
     "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
@@ -23,6 +18,12 @@ export const ActivePlans = () => {
 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
+
+  useEffect(() => {
+    document.title = "Active Plans";
+    actions.getActivePlans();
+    actions.getProfile();
+  }, [actions]);
 
   const handleProfileImageChange = (event) => {
     const archivo = event.target.files[0];
@@ -46,10 +47,6 @@ export const ActivePlans = () => {
     }
   };
 
-  useEffect(() => {
-    document.title = "Active Plans";
-  }, []);
-
   const handleProfileButtonClick = () => {
     profileFileInputRef.current.click();
   };
@@ -58,36 +55,13 @@ export const ActivePlans = () => {
     backgroundFileInputRef.current.click();
   };
 
-
   const handleProfileClick = () => {
     navigate("/profile");
   };
 
-
   const handleHistoryClick = () => {
     navigate("/plans-history");
   };
-
-
-  const activePlans = [
-    { date: "2024-07-10", title: "Active Plan A" },
-    { date: "2024-08-12", title: "Active Plan B" },
-    { date: "2024-09-05", title: "Active Plan C" },
-    { date: "2024-10-18", title: "Active Plan D" },
-    { date: "2024-11-30", title: "Active Plan E" },
-    { date: "2024-12-10", title: "Active Plan F" },
-  ];
-
-
-  const chunkPlans = (plans, chunkSize) => {
-    const result = [];
-    for (let i = 0; i < plans.length; i += chunkSize) {
-      result.push(plans.slice(i, i + chunkSize));
-    }
-    return result;
-  };
-
-  const groupedPlans = chunkPlans(store.activePlans, 4);
 
   const handleDeleteUser = async () => {
     try {
@@ -111,10 +85,16 @@ export const ActivePlans = () => {
     }
   };
 
-  useEffect(() => {
-    actions.getProfile();
+  const chunkPlans = (plans, chunkSize) => {
+    const result = [];
+    for (let i = 0; i < plans.length; i += chunkSize) {
+      result.push(plans.slice(i, i + chunkSize));
+    }
+    return result;
+  };
 
-  }, []);
+  const filteredPlans = store.activePlans.filter(plan => plan.status !== "closed");
+  const groupedPlans = chunkPlans(filteredPlans, 4);
 
   return (
     <div className="container mt-4" style={{ minHeight: "80vh" }}>
@@ -129,24 +109,24 @@ export const ActivePlans = () => {
           backgroundPosition: "center center",
         }}
       >
-        <button type="button" class="mt-3 ms-3 border-3 border-dark btn btn-danger" data-bs-toggle="modal" data-bs-target="#Modal">
+        <button type="button" className="mt-3 ms-3 border-3 border-dark btn btn-danger" data-bs-toggle="modal" data-bs-target="#Modal">
           Delete Account
         </button>
-        <div class="modal fade" id="Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Are you sure you want to delete the account?</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+        <div className="modal fade" id="Modal" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title" id="exampleModalLabel">Are you sure you want to delete the account?</h5>
+                <button type="button" className="close" data-bs-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
               </div>
-              <div class="modal-body">
+              <div className="modal-body">
                 With this you confirm that you want to delete your account forever.
               </div>
-              <div class="modal-footer">
-                <button type="button" class="mt-1 ms-1 border-3 border-dark btn btn-danger" onClick={handleDeleteUser}>Delete Account</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <div className="modal-footer">
+                <button type="button" className="mt-1 ms-1 border-3 border-dark btn btn-danger" onClick={handleDeleteUser}>Delete Account</button>
+                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
               </div>
             </div>
           </div>
@@ -165,7 +145,6 @@ export const ActivePlans = () => {
           <i className="fa-solid fa-camera-retro"></i>
         </button>
       </div>
-
 
       <div className="d-flex justify-content-center mb-4">
         <div className="position-relative">
@@ -212,13 +191,11 @@ export const ActivePlans = () => {
         </div>
       </div>
 
-
       <div className="text-center mb-4">
         <h4>{store.user?.name || "User Name"}</h4>
       </div>
 
       <hr className="my-4" />
-
 
       <div className="row text-center mb-4">
         <div className="col">
@@ -231,7 +208,7 @@ export const ActivePlans = () => {
         </div>
         <div className="col">
           <button
-
+            onClick={() => actions.updatePlanStatus()}
             className="btnProfile w-100"
           >
             Active plans
@@ -271,14 +248,13 @@ export const ActivePlans = () => {
                               <p className="card-text">People: {plan.people_active} / {plan.people} people active</p>
                               <div className="d-flex justify-content-between align-items-center mt-3">
                                 <p className="text-white">Created by: {plan.creator_name}</p>
-                                <span className={`badge ${plan.status === "open" ? "bg-success" : "bg-danger"}`}>
-                                  {plan.status === "open" ? "Open" : "Full"}
+                                <span className={`badge ${plan.status === "open" ? "bg-success" : (plan.status === "closed" ? "bg-danger" : "bg-secondary")}`}>
+                                  {plan.status === "open" ? "Open" : (plan.status === "closed" ? "Closed" : "Full")}
                                 </span>
                               </div>
                               <div className="d-flex justify-content-between mt-3">
                                 <div className="d-flex justify-content-between mt-3">
                                   {store.user?.id === plan.creator.id ? (
-                                    // Si el ID del usuario logueado es igual al del creador
                                     <button
                                       className="btn btn-danger"
                                       onClick={() => handleDeletePlan(plan.id)}
@@ -286,7 +262,6 @@ export const ActivePlans = () => {
                                       Eliminar
                                     </button>
                                   ) : (
-                                    // Si el ID del usuario logueado es diferente al del creador
                                     <button
                                       className="btn btn-warning"
                                       onClick={() => actions.leavePlan(plan.id)}
@@ -295,14 +270,12 @@ export const ActivePlans = () => {
                                     </button>
                                   )}
                                 </div>
-
                               </div>
                             </div>
                           </div>
                         </div>
                       );
                     })}
-
                   </div>
                 </Carousel.Item>
               ))
