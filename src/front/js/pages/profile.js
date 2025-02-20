@@ -13,25 +13,25 @@ export const Profile = () => {
     const savedImage = localStorage.getItem("profileImage");
     return savedImage || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png";
   });
-  
 
- 
+
+
   const [backgroundImage, setBackgroundImage] = useState(
     localStorage.getItem("backgroundImage") || "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww"
   );
 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
-  
-  
+
+
   const handleProfileImageChange = (event) => {
     const archivo = event.target.files[0];
     if (archivo) {
       const formData = new FormData();
       formData.append("image", archivo);
-  
+
       const backendUrl = process.env.BACKEND_URL;
-  
+
       fetch(`${backendUrl}upload-profile-image`, {
         method: "POST",
         headers: {
@@ -43,10 +43,11 @@ export const Profile = () => {
         .then((data) => {
           if (data.imageUrl) {
             console.log("Imagen de perfil actualizada", data.imageUrl);
-            
+
             localStorage.setItem("profileImage", data.imageUrl);
-            setProfileImage(data.imageUrl); 
+            setProfileImage(data.imageUrl);
           } else {
+            
             console.error("Error al actualizar la imagen", data.error);
           }
         })
@@ -55,26 +56,50 @@ export const Profile = () => {
         });
     }
   };
-  
-  
+
+  const getInfoUser = async function () {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No hay token de autenticación");
+
+      const response = await fetch(process.env.BACKEND_URL + "/user/profile", {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token,
+        }
+      })
+      const data = await response.json();
+      setProfileImage(data.user.image)
+      if (!data.user.image) {
+        setProfileImage("https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png");
+
+      }
+      else {
+        localStorage.setItem("profileImage", data.user.image)
+      }
+
+    } catch (error) {
+      console.log(error)
+    }
+  }
   useEffect(() => {
     const savedImage = localStorage.getItem("profileImage");
     if (savedImage) {
       setProfileImage(savedImage);
     } else {
-      setProfileImage("https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png");
+      getInfoUser()
     }
-  }, []); 
-  
-  
-  
+  }, []);
+
+
+
   const handleBackgroundImageChange = (event) => {
     const archivo = event.target.files[0];
     if (archivo) {
       const reader = new FileReader();
       reader.onload = function (e) {
         setBackgroundImage(e.target.result);
-        localStorage.setItem("backgroundImage", e.target.result);  
+        localStorage.setItem("backgroundImage", e.target.result);
       };
       reader.readAsDataURL(archivo);
     }
@@ -184,7 +209,7 @@ export const Profile = () => {
 
   const handleSaveChanges = () => {
     localStorage.setItem("user", JSON.stringify(formData));
-    actions.saveProfile(formData);  
+    actions.saveProfile(formData);
     navigate("/");
   };
 
@@ -224,7 +249,7 @@ export const Profile = () => {
                 </button>
               </div>
               <div class="modal-body">
-              With this you confirm that you want to delete your account forever.
+                With this you confirm that you want to delete your account forever.
               </div>
               <div class="modal-footer">
                 <button type="button" class="mt-1 ms-1 border-3 border-dark btn btn-danger" onClick={handleDeleteUser}>Delete Account</button>
@@ -396,7 +421,7 @@ export const Profile = () => {
                 className="form-control"
                 id="password"
                 name="password"
-                value={formData.password || ""} 
+                value={formData.password || ""}
                 onChange={handleInputChange}
                 disabled={!isEditing.password}
                 placeholder="Your password"
