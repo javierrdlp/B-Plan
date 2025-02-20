@@ -9,10 +9,11 @@ export const Profile = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [profileImage, setProfileImage] = useState(() => {
+    const savedImage = localStorage.getItem("profileImage");
+    return savedImage || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png";
+  });
   
-  const [profileImage, setProfileImage] = useState(
-    localStorage.getItem("profileImage") || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
-  );
 
  
   const [backgroundImage, setBackgroundImage] = useState(
@@ -21,19 +22,51 @@ export const Profile = () => {
 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
-
+  
+  
   const handleProfileImageChange = (event) => {
     const archivo = event.target.files[0];
     if (archivo) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        setProfileImage(e.target.result);
-        localStorage.setItem("profileImage", e.target.result);  
-      };
-      reader.readAsDataURL(archivo);
+      const formData = new FormData();
+      formData.append("image", archivo);
+  
+      const backendUrl = process.env.BACKEND_URL;
+  
+      fetch(`${backendUrl}upload-profile-image`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.imageUrl) {
+            console.log("Imagen de perfil actualizada", data.imageUrl);
+            
+            localStorage.setItem("profileImage", data.imageUrl);
+            setProfileImage(data.imageUrl); 
+          } else {
+            console.error("Error al actualizar la imagen", data.error);
+          }
+        })
+        .catch((err) => {
+          console.error("Error al hacer la solicitud", err);
+        });
     }
   };
-
+  
+  
+  useEffect(() => {
+    const savedImage = localStorage.getItem("profileImage");
+    if (savedImage) {
+      setProfileImage(savedImage);
+    } else {
+      setProfileImage("https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png");
+    }
+  }, []); 
+  
+  
   
   const handleBackgroundImageChange = (event) => {
     const archivo = event.target.files[0];

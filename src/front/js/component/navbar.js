@@ -22,10 +22,11 @@ export const Navbar = () => {
 		};
 	  }, []); 
 
-	const handleLogout = () => {
+	  const handleLogout = () => {
+		localStorage.removeItem("profileImage"); 
 		actions.logout();
-	};
-
+	  };
+	  
 	return (
 		<nav className="navbar navbar-light" style={{ backgroundColor: "#67ABB8"}}>
 			<div className="container">
