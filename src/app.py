@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pytz import timezone
 from flask import Flask, request, jsonify, url_for, send_from_directory, render_template, abort
 from flask_migrate import Migrate
@@ -44,6 +44,7 @@ mail = Mail(app)
 app.url_map.strict_slashes = False
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT-KEY")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=12)
 jwt = JWTManager(app)
 
 bcrypt = Bcrypt(app)

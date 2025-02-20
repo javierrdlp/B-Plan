@@ -14,7 +14,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					initial: "white"
 				}
 			],
-			plans: [],			
+			plans: [],
 			showedPlan: {},
 			planAddress: "",
 			activePlans: [],
@@ -121,18 +121,18 @@ const getState = ({ getStore, getActions, setStore }) => {
 						method: "GET",
 						headers: { "Content-Type": "application/json" }
 					});
-					
+
 					const data = await resp.json();
 					setStore({ plans: data });
 					const store = getStore();
 					console.log("planes")
 					console.log(store.plans)
-					
+
 				} catch (error) {
 					console.error("Error trayendo planes:", error);
 					return false;
 				}
-			},			
+			},
 
 			getCategories: async () => {
 				try {
@@ -258,7 +258,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 			},
 
 			getProfile: async () => {
-    try {
+				try {
 					const token = localStorage.getItem("token");
 					if (!token) throw new Error("No hay token de autenticación");
 					const resp = await fetch(process.env.BACKEND_URL + "/user/profile", {
@@ -274,11 +274,13 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error("Error al traer perfil:", error);
 					throw error;
 				}
-      },
-      
-			joinPlan: async(planId) => {
-        try {
-        const resp = await fetch(process.env.BACKEND_URL + `/plans/${planId}/join`, {
+			},
+
+			joinPlan: async (planId) => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token de autenticación");
+					const resp = await fetch(process.env.BACKEND_URL + `/plans/${planId}/join`, {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
@@ -288,7 +290,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					const data = await resp.json();
 
 					if (!resp.ok) throw new Error(data.msg || "Error al unirse al plan");
-			
+
 					return data;
 				} catch (error) {
 					console.error("Error al unirse al plan:", error);
@@ -297,10 +299,10 @@ const getState = ({ getStore, getActions, setStore }) => {
 			},
 
 			setShowedPlan: (plan) => {
-				setStore({showedPlan: plan})
+				setStore({ showedPlan: plan })
 			},
 			setPlanAddress: (address) => {
-				setStore({planAddress: address})
+				setStore({ planAddress: address })
 			},
 
 			getPlansHistory: async () => {
@@ -378,8 +380,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					const plan = store.activePlans.find(p => p.id === planId);
 
 					if (!plan) throw new Error("Plan no encontrado");
-
-					if (plan.creator_id !== userId) {
+					if (plan.creator.id !== userId) {
 						throw new Error("Solo el creador puede eliminar el plan");
 					}
 
