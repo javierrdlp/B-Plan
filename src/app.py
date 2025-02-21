@@ -249,6 +249,7 @@ def create_plan():
         creator_id=user.id, 
         latitude=latitude, 
         longitude=longitude, 
+        image=body['image'],
         description=body['description'])
     db.session.add(new_plan)
     db.session.commit()
