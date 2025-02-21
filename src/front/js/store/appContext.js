@@ -22,20 +22,19 @@ const injectContext = PassedComponent => {
 		);
 
 		useEffect(() => {
-			/**
-			 * EDIT THIS!
-			 * This function is the equivalent to "window.onLoad", it only runs once on the entire application lifetime
-			 * you should do your ajax requests or fetch api requests here. Do not use setState() to save data in the
-			 * store, instead use actions, like this:
-			 **/
 			const initializeApp = () => {
 				const token = localStorage.getItem("token");
-				if (token) {
-					// Ensure the token is kept in the global state if it exists in localStorage
-					setState((prevState) => ({
-						...prevState,
-						store: { ...prevState.store, token },
-					}));
+				const storedUser = localStorage.getItem("user"); 
+				if (token && storedUser) { 
+					try {
+						const user = JSON.parse(storedUser);
+						setState((prevState) => ({
+							...prevState,
+							store: { ...prevState.store, token, user },
+						}));
+					} catch (error) {
+						console.error("Error parsing user data from localStorage:", error);
+					}
 				}
 				state.actions.getMessage(); // <---- calling this function from the flux.js actions
 			};

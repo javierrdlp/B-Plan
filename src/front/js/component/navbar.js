@@ -30,7 +30,7 @@ export const Navbar = () => {
 	return (
 		<nav className="navbar navbar-light" style={{ backgroundColor: "#67ABB8"}}>
 			<div className="container">
-				<Link to="/">
+				<Link to="/loged-home">
 					<img className="logo-letras-navbar" src={logoLetras} alt="Website Logo" style={{ width: "40%" }} />
 				</Link>
 				<div className="ml-auto">

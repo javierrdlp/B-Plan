@@ -15,7 +15,13 @@ const getState = ({ getStore, getActions, setStore }) => {
 				}
 			],
 			plans: [],
+			showedPlan: {},
+			planAddress: "",
+			activePlans: [],
+			plansHistory: [],
+			user: {},
 			userProfile: {}
+
 		},
 		actions: {
 
@@ -53,14 +59,15 @@ const getState = ({ getStore, getActions, setStore }) => {
 					if (!resp.ok) throw new Error("Error en el registro");
 
 					const data = await resp.json();
-					console.log("Usuario registrado:", data);
 					localStorage.setItem("token", data.token);
-					setStore({ token: data.token });
+					localStorage.setItem("user", JSON.stringify(data.user));
+					setStore({ token: data.token, user: data.user });
 				} catch (error) {
 					console.error("Error en el registro:", error);
 					throw error;
 				}
 			},
+
 			login: async (email, password) => {
 				try {
 					const resp = await fetch(process.env.BACKEND_URL + "/login", {
@@ -72,7 +79,8 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 					const data = await resp.json();
 					localStorage.setItem("token", data.token);
-					setStore({ token: data.token });
+					localStorage.setItem("user", JSON.stringify(data.user));
+					setStore({ token: data.token, user: data.user });
 				} catch (error) {
 					console.error("Error en el login:", error);
 					throw error;
@@ -81,7 +89,8 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 			logout: () => {
 				localStorage.removeItem("token");
-				setStore({ token: null });
+				localStorage.removeItem("user");
+				setStore({ token: null, user: null });
 			},
 
 			private: async () => {
@@ -112,12 +121,13 @@ const getState = ({ getStore, getActions, setStore }) => {
 						method: "GET",
 						headers: { "Content-Type": "application/json" }
 					});
-					console.log(resp);
-					const data = await resp.json();
 
+					const data = await resp.json();
 					setStore({ plans: data });
 					const store = getStore();
-					console.log(store.plans);
+					console.log("planes")
+					console.log(store.plans)
+
 				} catch (error) {
 					console.error("Error trayendo planes:", error);
 					return false;
@@ -156,6 +166,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 						},
 						body: JSON.stringify(planData),
 					});
+
 					if (!resp.ok) throw new Error("Error al crear el plan");
 
 					const data = await resp.json();
@@ -200,8 +211,25 @@ const getState = ({ getStore, getActions, setStore }) => {
 					throw error;
 				}
 			},
+			getActivePlans: async () => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token disponible");
 
+					const resp = await fetch(process.env.BACKEND_URL + "/plans/active", {
+						headers: {
+							"Authorization": `Bearer ${token}`
+						}
+					});
 
+					if (!resp.ok) throw new Error("Error al obtener planes activos");
+
+					const data = await resp.json();
+					setStore({ activePlans: data.plans });
+				} catch (error) {
+					console.error("Error obteniendo planes activos:", error);
+				}
+			},
 			saveProfile: async (profileData) => {
 				try {
 					const token = localStorage.getItem("token");
@@ -229,6 +257,186 @@ const getState = ({ getStore, getActions, setStore }) => {
 				}
 			},
 
+			getProfile: async () => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token de autenticación");
+					const resp = await fetch(process.env.BACKEND_URL + "/user/profile", {
+						headers: {
+							"Authorization": `Bearer ${token}`
+						}
+					})
+					const data = await resp.json();
+					setStore({ user: data.user });
+					console.log("Usuario:", data);
+					return data;
+				} catch (error) {
+					console.error("Error al traer perfil:", error);
+					throw error;
+				}
+			},
+
+			joinPlan: async (planId) => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token de autenticación");
+					const resp = await fetch(process.env.BACKEND_URL + `/plans/${planId}/join`, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"Authorization": "Bearer " + token,
+						}
+					});
+					const data = await resp.json();
+
+					if (!resp.ok) throw new Error(data.msg || "Error al unirse al plan");
+
+					return data;
+				} catch (error) {
+					console.error("Error al unirse al plan:", error);
+					throw error;
+				}
+			},
+
+			setShowedPlan: (plan) => {
+				setStore({ showedPlan: plan })
+			},
+			setPlanAddress: (address) => {
+				setStore({ planAddress: address })
+			},
+
+			getPlansHistory: async () => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token disponible");
+					const store = getStore();
+					const activePlans = store.activePlans || [];
+					const currentDate = new Date();
+					for (const plan of activePlans) {
+						const endDate = new Date(plan.endDate); 
+						if (endDate < currentDate) {
+							await fetch(`${process.env.BACKEND_URL}/plans/${plan.id}/status`, {
+								method: "PUT",
+								headers: {
+									"Authorization": `Bearer ${token}`,
+									"Content-Type": "application/json"
+								},
+								body: JSON.stringify({ status: "closed" }), 
+							});
+						}
+					}
+					const resp = await fetch(process.env.BACKEND_URL + "/plans/history", {
+						headers: {
+							"Authorization": `Bearer ${token}`
+						}
+					});
+					if (!resp.ok) throw new Error("Error al obtener el historial de planes");
+					const data = await resp.json();
+					setStore({ plansHistory: data.plans });
+				} catch (error) {
+					console.error("Error obteniendo el historial de planes:", error);
+				}
+			},
+
+			updatePlanStatus: async () => {
+				try {
+				  const token = localStorage.getItem("token");
+				  if (!token) {
+					console.error("No hay token disponible");
+					return;
+				  }
+			  
+				  const response = await fetch(`${process.env.BACKEND_URL}/update_plans_status`, {
+					method: 'PUT',
+					headers: {
+					  'Authorization': `Bearer ${token}`,
+					  'Content-Type': 'application/json',
+					},
+				  });
+			  
+				  if (!response.ok) {
+					const errorData = await response.json();
+					throw new Error(errorData.msg || "Error al actualizar el estado de los planes");
+				  }
+			  
+				  const data = await response.json();
+				  console.log(data.msg); 
+				  return data; 
+			  
+				} catch (error) {
+				  console.error("Error al actualizar el estado de los planes:", error);
+				  throw error; 
+				}
+			  },
+
+			deletePlan: async (planId, userId) => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token disponible");
+
+					const store = getStore();
+					const plan = store.activePlans.find(p => p.id === planId);
+
+					if (!plan) throw new Error("Plan no encontrado");
+					if (plan.creator.id !== userId) {
+						throw new Error("Solo el creador puede eliminar el plan");
+					}
+
+					const resp = await fetch(`${process.env.BACKEND_URL}/plans/${planId}`, {
+						method: "DELETE",
+						headers: {
+							"Authorization": `Bearer ${token}`
+						}
+					});
+
+					if (!resp.ok) throw new Error("No se pudo eliminar el plan");
+
+					const data = await resp.json();
+					console.log("Plan eliminado:", data);
+
+					const updatedPlans = store.activePlans.filter(plan => plan.id !== planId);
+					setStore({ activePlans: updatedPlans });
+
+				} catch (error) {
+					console.error("Error al eliminar el plan:", error);
+				}
+			},
+
+
+			leavePlan: async (planId, userName) => {
+				try {
+					const token = localStorage.getItem("token");
+					if (!token) throw new Error("No hay token disponible");
+
+					const store = getStore();
+					const plan = store.activePlans.find(p => p.id === planId);
+
+					if (!plan) throw new Error("Plan no encontrado");
+
+					// Verificar si el usuario es el creador
+					if (plan.creator_name === userName) {
+						throw new Error("El creador no puede salir de su propio plan, solo puede eliminarlo");
+					}
+
+					const resp = await fetch(`${process.env.BACKEND_URL}/plans/${planId}/leave`, {
+						method: "POST",
+						headers: {
+							"Authorization": `Bearer ${token}`
+						}
+					});
+
+					if (!resp.ok) throw new Error("No se pudo abandonar el plan");
+
+					const data = await resp.json();
+					console.log("Has salido del plan:", data);
+
+					const updatedPlans = store.activePlans.filter(plan => plan.id !== planId);
+					setStore({ activePlans: updatedPlans });
+
+				} catch (error) {
+					console.error("Error al salir del plan:", error);
+				}
+			},
 		}
 	};
 };

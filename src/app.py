@@ -2,9 +2,9 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pytz import timezone
-from flask import Flask, request, jsonify, url_for, send_from_directory, render_template
+from flask import Flask, request, jsonify, url_for, send_from_directory, render_template, abort
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
@@ -42,6 +42,7 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 
 app.config.update(dict(
+
     DEBUG=False,
     MAIL_SERVER='smpt.gmail.com',
     MAIL_PORT=587,
@@ -55,6 +56,7 @@ mail = Mail(app)
 app.url_map.strict_slashes = False
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT-KEY")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=12)
 jwt = JWTManager(app)
 
 bcrypt = Bcrypt(app)
@@ -223,7 +225,11 @@ def delete_profile():
     user = User.query.filter_by(email=user_email).first()
     if user is None:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
+
     
+
+    Plan.query.filter_by(creator_id=user.id).delete()
+
     AssistantPlan.query.filter_by(user_id=user.id).delete()
     UserPlan.query.filter_by(user_id=user.id).delete()
     
@@ -250,12 +256,14 @@ def create_plan():
         return jsonify({'msg': 'El campo end_time es obligatorio'}), 400
     if 'category_id' not in body:
         return jsonify({'msg': 'El campo category_id es obligatorio'}), 400
+    
+    latitude = body.get('latitude')
+    longitude = body.get('longitude')
 
     user = User.query.filter_by(email=user_id).first()
     if not user:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
 
-    # Create the new plan
     new_plan = Plan(
         name=body['name'],
         people=body['people'],
@@ -264,12 +272,17 @@ def create_plan():
         end_time=body['end_time'],
         category_id=body['category_id'],
         creator_id=user.id, 
-    )
-
+        latitude=latitude, 
+        longitude=longitude, 
+        image=body['image'],
+        description=body['description'])
     db.session.add(new_plan)
     db.session.commit()
-
+    new_user_plan = UserPlan(user_id=user.id, plan_id=new_plan.id)
+    db.session.add(new_user_plan)
+    db.session.commit()
     return jsonify({'msg': 'Plan creado exitosamente', 'plan': new_plan.serialize()}), 201
+
 
 
 @app.route('/plans', methods=['GET'])
@@ -312,15 +325,187 @@ def put_plan(plan_id):
     return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
 
 @app.route('/plans/<int:plan_id>', methods=['DELETE'])
+@jwt_required()
 def delete_plan(plan_id):
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    plan = Plan.query.get(plan_id)
+
+
+    if not plan:
+        abort(404, description=f'El plan con id {plan_id} no existe')
+    if plan.creator_id != user.id:
+        abort(403, description='No tienes permiso para eliminar este plan')
+    user_plans = UserPlan.query.filter_by(plan_id=plan_id).all()
+    for user_plan in user_plans:
+        db.session.delete(user_plan)
+    db.session.delete(plan)
+    db.session.commit()
+    return jsonify({'msg': 'Plan eliminado exitosamente'}), 200
+
+
+@app.route('/plans/active', methods=['GET'])
+@jwt_required()
+def get_active_plans():
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    today = datetime.now(spain_tz).date()
+    print(f'Fecha de hoy en España: {today}')
+    created_plans = Plan.query.filter(
+        Plan.creator_id == user.id,
+        Plan.date >= today 
+    ).all()
+    joined_plans = db.session.query(Plan).join(UserPlan).filter(
+        UserPlan.user_id == user.id,
+        Plan.date >= today
+    ).all()
+    all_plans = list({plan.id: plan for plan in created_plans + joined_plans}.values())
+    if not all_plans:
+        return jsonify({'msg': 'No tienes planes activos'}), 404
+    serialized_plans = []
+    for plan in all_plans:
+        plan_data = plan.serialize()
+        creator = User.query.get(plan.creator_id)
+        plan_data['creator_name'] = creator.name if creator else "Unknown"
+        serialized_plans.append(plan_data)
+    return jsonify({'msg': 'ok', 'plans': serialized_plans}), 200
+
+@app.route('/plans/<int:plan_id>/join', methods=['POST'])
+@jwt_required()
+def join_plan(plan_id):
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
     plan = Plan.query.get(plan_id)
     if plan is None:
         return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
-
-    db.session.delete(plan)
+    if plan.status == "closed":
+        return jsonify({'msg': 'No puedes unirte a un plan que está cerrado'}), 400
+    existing_join = UserPlan.query.filter_by(user_id=user.id, plan_id=plan.id).first()
+    if existing_join is not None:
+        return jsonify({'msg': 'Ya estás unido a este plan'}), 400
+    if plan.people_active >= plan.people:
+        return jsonify({'msg': 'El plan ya está lleno'}), 400
+    new_join = UserPlan(user_id=user.id, plan_id=plan.id)
+    db.session.add(new_join)
+    plan.people_active += 1
+    if plan.people_active >= plan.people:
+        plan.status = "full"
     db.session.commit()
+    return jsonify({'msg': 'Te has unido al plan con éxito', 'plan': plan.serialize()}), 200
 
-    return jsonify({'msg': 'Plan eliminado exitosamente'}), 200
+@app.route('/plans/<int:plan_id>/leave', methods=['POST'])
+@jwt_required()
+def leave_plan(plan_id):
+    user_email = get_jwt_identity()
+    user = User.query.filter_by(email=user_email).first()
+    if not user:
+        abort(404, description='Usuario no encontrado')
+    plan = Plan.query.get(plan_id)
+    if not plan:
+        abort(404, description=f'El plan con id {plan_id} no existe')
+    user_plan = UserPlan.query.filter_by(user_id=user.id, plan_id=plan.id).first()
+    if not user_plan:
+        abort(400, description='No estás unido a este plan')
+    db.session.delete(user_plan)
+    plan.people_active = max(0, plan.people_active - 1) 
+    if plan.status == "full" and plan.people_active < plan.people:
+        plan.status = "open"
+    db.session.commit()
+    return jsonify({'msg': 'Has salido del plan', 'plan': plan.serialize()}), 200
+
+spain_tz = timezone('Europe/Madrid')
+
+@app.route('/plans/<int:plan_id>/status', methods=['PUT'])
+@jwt_required()
+def status_plan(plan_id):
+    spain_tz = datetime.now().astimezone().tzinfo
+    now = datetime.now(spain_tz) 
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        return jsonify({'msg': f'El plan con id {plan_id} no existe'}), 404
+    plan_end_datetime = datetime.combine(plan.date, plan.end_time) 
+    if plan_end_datetime < now:  
+        plan.status = "closed"
+    elif plan.date == now.date() and plan.end_time <= now.time():
+        plan.status = "closed"
+    elif plan.people_active >= plan.people:
+        plan.status = "full"
+    else:
+        plan.status = "open"
+    db.session.commit()
+    return jsonify({'msg': f'El estado del plan con id {plan_id} ahora está {plan.status}'}), 200
+
+@app.route('/update_plans_status', methods=['PUT'])
+def update_plans_status():
+    now = datetime.now(spain_tz) 
+    plans_to_close = Plan.query.filter(
+        Plan.status != "closed", 
+        Plan.date <= now.date(),
+        Plan.end_time <= now.time()
+    ).all()
+    if not plans_to_close:
+        return jsonify({'msg': 'No hay planes para cerrar.'}), 200
+    for plan in plans_to_close:
+        plan.status = "closed"
+    db.session.commit() 
+    return jsonify({'msg': f'{len(plans_to_close)} planes actualizados a "closed".'}), 200
+
+@app.route('/plans/history', methods=['GET'])
+@jwt_required()
+def plan_history():
+    user_email = get_jwt_identity()
+    print(f"Usuario autenticado: {user_email}") 
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        print("Usuario no encontrado")  
+        return jsonify({'msg': 'Usuario no encontrado'}), 404
+    user_plans = UserPlan.query.filter_by(user_id=user.id).all()
+    print(f"Registros de UserPlan para el usuario: {user_plans}")
+    if not user_plans:
+        print("Este usuario no tiene planes asociados en UserPlan.")
+        return jsonify({'msg': 'Este usuario no tiene planes asociados en UserPlan.'}), 404
+    plans_with_join = Plan.query.join(UserPlan, UserPlan.plan_id == Plan.id).filter(
+        UserPlan.user_id == user.id, Plan.status == "closed"
+    ).all()
+    
+    print(f"Planes encontrados con estado 'closed': {plans_with_join}")
+    if not plans_with_join:
+        print("No hay planes cerrados para este usuario.") 
+        return jsonify({'msg': 'No hay planes cerrados en el historial del usuario'}), 404
+    return jsonify({'msg': 'ok', 'plans': [plan.serialize() for plan in plans_with_join]}), 200
+
+
+@app.route('/categories', methods=['GET'])
+def get_categories():
+    categories = Categories.query.all()
+    return jsonify([{'id': category.id,'name': category.name,'image': category.image} for category in categories]), 200
+
+@app.route('/categories/<int:category_id>', methods=['GET'])
+def get_category_by_id(category_id):
+    category = Categories.query.get(category_id)
+    if category is None:
+        return jsonify({'msg': f'La categoría con id {category_id} no existe'}), 404
+    return jsonify({'id': category.id,'name': category.name,'image': category.image}), 200
+
+@app.route('/send_mail', methods={'GET'})
+def send_mail():
+    msg = Message(
+        subject='Test mail',
+        sender='bplan4geeks@gmail.com',
+        recipients={'bplan4geeks@gmail.com'},
+    )
+    msg.html = "<h1>Te envié este correo desde flask</h1>"
+    mail.send(msg)
+    return jsonify({'msg': 'Correo enviado!!!'})
+
+from flask import request, jsonify
+from werkzeug.utils import secure_filename
+import os
+
 
 @app.route('/upload-profile-image', methods=['POST'])
 @jwt_required()
@@ -330,7 +515,7 @@ def upload_profile_image():
     if not token:
         return jsonify({"error": "Token no proporcionado"}), 403 
 
-    
+
     if 'image' not in request.files:
         return 'No image part', 400
 
@@ -363,3 +548,10 @@ def upload_profile_image():
     except Exception as e:
         print(f"Error uploading image: {str(e)}")  
         return jsonify({"error": str(e)}), 500
+
+    return jsonify({'msg': 'Imagen subida correctamente', 'image_url': filepath}), 200
+
+if __name__ == '__main__':
+    PORT = int(os.environ.get('PORT', 3001))
+    app.run(host='0.0.0.0', port=PORT, debug=True)
+

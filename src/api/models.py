@@ -58,6 +58,7 @@ class Plan(db.Model):
     __tablename__ = 'plan'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=True)
     people = db.Column(db.Integer, nullable=False)
     people_active = db.Column(db.Integer, nullable=False, default=0)
     date = db.Column(db.Date, nullable=False)
@@ -68,8 +69,9 @@ class Plan(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     image = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(50), nullable=False, default="open")
-    creator_id = db.Column(db.String(120), nullable=False)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+    creator_user = db.relationship('User')
     category = db.relationship('Categories', back_populates='plans')
     user_plans = db.relationship('UserPlan', back_populates='plan')
     assistant_plans = db.relationship('AssistantPlan', back_populates='plan')
@@ -81,6 +83,7 @@ class Plan(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "description": self.description,
             "people": self.people,
             "people_active": self.people_active,
             "date": self.date.isoformat() if self.date else None,
