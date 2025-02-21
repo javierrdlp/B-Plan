@@ -204,7 +204,7 @@ export const PlansHistory = () => {
           </button>
         </div>
         <div className="col">
-          <button className="btnProfile w-100">Active plans</button>
+          <button onClick={handleActivePlansClick} className="btnProfile w-100">Active plans</button>
         </div>
         <div className="col">
           <button className="btnProfile w-100">History</button>

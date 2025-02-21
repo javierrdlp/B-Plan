@@ -19,6 +19,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 			planAddress: "",
 			activePlans: [],
 			plansHistory: [],
+			categories: [],
 			user: {},
 			userProfile: {}
 
@@ -435,6 +436,32 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 				} catch (error) {
 					console.error("Error al salir del plan:", error);
+				}
+			},
+
+			initializeCategories: async () => {
+				try {
+					const resp = await fetch(process.env.BACKEND_URL + "/initialize_categories", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+					});
+					if (!resp.ok) {
+						throw new Error(`Error ${resp.status}: ${resp.statusText}`);}
+					const categoriesResp = await fetch(process.env.BACKEND_URL + "/categories", {
+						method: "GET",
+						headers: {
+							"Content-Type": "application/json",
+						},
+					});
+					if (!categoriesResp.ok) {
+						throw new Error("Error fetching categories");}
+					const categoriesData = await categoriesResp.json();
+					setStore({ categories: categoriesData });
+					console.log("Categorías inicializadas correctamente:", categoriesData);
+				} catch (error) {
+					console.error("Error al inicializar categorías:", error);
 				}
 			},
 		}

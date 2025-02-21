@@ -11,7 +11,7 @@ export const ActivePlans = () => {
   const { store, actions } = useContext(Context);
   const navigate = useNavigate();
 
-  
+
   const [profileImage, setProfileImage] = useState(
     localStorage.getItem("profileImage") || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
   );
@@ -23,17 +23,11 @@ export const ActivePlans = () => {
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
 
-  
-
- 
-  const profileFileInputRef = useRef(null);
-  const backgroundFileInputRef = useRef(null);
-
   useEffect(() => {
     document.title = "Active Plans";
     actions.updatePlanStatus();
     actions.getActivePlans();
-    actions.getProfile(); 
+    actions.getProfile();
   }, [actions]);
 
 
@@ -44,7 +38,7 @@ export const ActivePlans = () => {
       reader.onload = function (e) {
         const newProfileImage = e.target.result;
         setProfileImage(newProfileImage);
-        localStorage.setItem("profileImage", newProfileImage); 
+        localStorage.setItem("profileImage", newProfileImage);
       };
       reader.readAsDataURL(archivo);
     }
@@ -57,7 +51,7 @@ export const ActivePlans = () => {
       reader.onload = function (e) {
         const newBackgroundImage = e.target.result;
         setBackgroundImage(newBackgroundImage);
-        localStorage.setItem("backgroundImage", newBackgroundImage); 
+        localStorage.setItem("backgroundImage", newBackgroundImage);
       };
       reader.readAsDataURL(archivo);
     }
@@ -124,11 +118,7 @@ export const ActivePlans = () => {
   const groupedPlans = chunkPlans(filteredPlans, 4);
 
   return (
-
-   
-
     <div className="container mt-4" style={{ minHeight: "80vh" }}>
-
       <div
         id="profileBackground"
         className="mb-3 position-relative"
@@ -161,9 +151,10 @@ export const ActivePlans = () => {
               </div>
             </div>
           </div>
-        </div>       
+        </div>
       </div>
 
+      {/* Sección de la imagen de perfil */}
       <div className="d-flex justify-content-center mb-4">
         <div className="position-relative">
           {!profileImage ? (
@@ -192,7 +183,6 @@ export const ActivePlans = () => {
               }}
             />
           )}
-
           <button
             onClick={handleProfileButtonClick}
             className="btnProfile position-absolute"
@@ -209,12 +199,14 @@ export const ActivePlans = () => {
         </div>
       </div>
 
+      {/* Nombre del usuario */}
       <div className="text-center mb-4">
         <h4>{store.user?.name || "User Name"}</h4>
       </div>
 
       <hr className="my-4" />
 
+      {/* Botones de navegación */}
       <div className="row text-center mb-4">
         <div className="col">
           <button onClick={handleProfileClick} className="btnProfile w-100">
@@ -222,15 +214,7 @@ export const ActivePlans = () => {
           </button>
         </div>
         <div className="col">
-
           <button className="btnProfile w-100">Active plans</button>
-
-          <button
-            className="btnProfile w-100"
-          >
-            Active plans
-          </button>
-
         </div>
         <div className="col">
           <button onClick={handleHistoryClick} className="btnProfile w-100">
@@ -238,7 +222,6 @@ export const ActivePlans = () => {
           </button>
         </div>
       </div>
-
       <h4 className="text-center mb-4">Active Plans</h4>
       <div
         style={{
@@ -248,107 +231,78 @@ export const ActivePlans = () => {
         }}
       >
         <Carousel interval={5000} indicators={false}>
-          {groupedPlans.map((group, index) => (
-            <Carousel.Item key={index}>
-              <div className="row justify-content-center">
-                {group.map((plan, idx) => (
-                  <div
-                    key={idx}
-                    className="col-3"
-                    style={{
-                      padding: "10px",
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  >
+          {groupedPlans.length > 0 ? (
+            groupedPlans.map((group, index) => (
+              <Carousel.Item key={index}>
+                <div className="row justify-content-center">
+                  {group.map((plan, idx) => (
                     <div
-                      className="card"
-                      style={{
-                        backgroundColor: "#F15B40",
-                        padding: "20px",
-                        borderRadius: "8px",
-                        width: "100%",
-                        boxSizing: "border-box",
-                      }}
+                      key={idx}
+                      className="col-md-4 col-sm-6"
+                      style={{ padding: "10px", display: "flex", justifyContent: "center" }}
                     >
-                      <h5 className="text-white">{plan.title}</h5>
-                      <p className="text-white">Plan Date: {plan.date}</p>
-                    </div>
-
-      <div className="container mt-4" style={{ height: "80vh" }}>
-        <h4 className="text-center mb-4 text-dark">Active Plans</h4>
-        <div style={{ backgroundColor: "#67ABB8", padding: "20px", borderRadius: "15px", boxShadow: "0 4px 8px rgba(0,0,0,0.2)" }}>
-          <Carousel interval={5000} indicators={false}>
-            {groupedPlans.length > 0 ? (
-              groupedPlans.map((group, index) => (
-                <Carousel.Item key={index}>
-                  <div className="row justify-content-center">
-                    {group.map((plan, idx) => {
-                      console.log("Plan:", plan);
-                      console.log("User ID:", store.user?.id);
-                      console.log("Plan Creator ID:", plan.creator.id);
-                      return (
-                        <div key={idx} className="col-md-4 col-sm-6" style={{ padding: "10px", display: "flex", justifyContent: "center" }}>
-                          <div className="card" style={{
-                            backgroundColor: "#F15B40", padding: "20px", borderRadius: "15px", width: "100%", boxSizing: "border-box", transition: "transform 0.3s ease"
-                          }}>
-                            <div className="card-body text-white">
-                              <h5 className="card-title">{plan.name}</h5>
-                              <p className="card-text">Date: {plan.date}</p>
-                              <p className="card-text">Time: {plan.start_time} - {plan.end_time}</p>
-                             
-                              <p className="card-text">Location: 
-                        <a className="ms-2"
-                          href={`https://www.google.com/maps?q=${plan.latitude},${plan.longitude}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                           View Location
-                        </a>
-                      </p>
-                              <p className="card-text">People: {plan.people_active} / {plan.people} people active</p>
-                              <div className="d-flex justify-content-between align-items-center mt-3">
-                                <p className="text-white">Created by: {plan.creator_name}</p>
-                                <span className={`badge ${plan.status === "open" ? "bg-success" : (plan.status === "closed" ? "bg-danger" : "bg-secondary")}`}>
-                                  {plan.status === "open" ? "Open" : (plan.status === "closed" ? "Closed" : "Full")}
-                                </span>
-                              </div>
-                              <div className="d-flex justify-content-between mt-3">
-                                <div className="d-flex justify-content-between mt-3">
-                                  {store.user?.id === plan.creator.id ? (
-                                    <button
-                                      className="btn btn-danger"
-                                      onClick={() => handleDeletePlan(plan.id)}
-                                    >
-                                      Eliminar
-                                    </button>
-                                  ) : (
-                                    <button
-                                      className="btn btn-warning"
-                                      onClick={() => actions.leavePlan(plan.id)}
-                                    >
-                                      Salir
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                      <div
+                        className="card"
+                        style={{
+                          backgroundColor: "#F15B40",
+                          padding: "20px",
+                          borderRadius: "15px",
+                          width: "100%",
+                          boxSizing: "border-box",
+                          transition: "transform 0.3s ease",
+                        }}
+                      >
+                        <div className="card-body text-white">
+                          <h5 className="card-title">{plan.name}</h5>
+                          <p className="card-text">Date: {plan.date}</p>
+                          <p className="card-text">Time: {plan.start_time} - {plan.end_time}</p>
+                          <p className="card-text">
+                            Location:
+                            <a
+                              className="ms-2"
+                              href={`https://www.google.com/maps?q=${plan.latitude},${plan.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              View Location
+                            </a>
+                          </p>
+                          <p className="card-text">People: {plan.people_active} / {plan.people} people active</p>
+                          <div className="d-flex justify-content-between align-items-center mt-3">
+                            <p className="text-white">Created by: {plan.creator_name}</p>
+                            <span className={`badge ${plan.status === "open" ? "bg-success" : (plan.status === "closed" ? "bg-danger" : "bg-secondary")}`}>
+                              {plan.status === "open" ? "Open" : (plan.status === "closed" ? "Closed" : "Full")}
+                            </span>
+                          </div>
+                          <div className="d-flex justify-content-between mt-3">
+                            {store.user?.id === plan.creator.id ? (
+                              <button
+                                className="btn btn-danger"
+                                onClick={() => handleDeletePlan(plan.id)}
+                              >
+                                Eliminar
+                              </button>
+                            ) : (
+                              <button
+                                className="btn btn-warning"
+                                onClick={() => actions.leavePlan(plan.id)}
+                              >
+                                Salir
+                              </button>
+                            )}
                           </div>
                         </div>
-                      );
-                    })}
-
-                  </div>
-                </Carousel.Item>
-              ))
-            ) : (
-              <p className="text-center text-white">No active plans found.</p>
-            )}
-          </Carousel>
-        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Carousel.Item>
+            ))
+          ) : (
+            <p className="text-center text-white">No active plans found.</p>
+          )}
+        </Carousel>
       </div>
-
-
       <input
         type="file"
         ref={profileFileInputRef}
@@ -362,8 +316,7 @@ export const ActivePlans = () => {
         style={{ display: "none" }}
         accept="image/*"
         onChange={handleBackgroundImageChange}
-
-
+      />
     </div>
   );
 };

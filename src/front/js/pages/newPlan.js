@@ -30,6 +30,7 @@ const NewPlan = () => {
       }, []);
 
   useEffect(() => {
+    actions.initializeCategories();
     actions.getCategories();
   }, []);
 

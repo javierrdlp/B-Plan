@@ -42,11 +42,10 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 
 app.config.update(dict(
-
     DEBUG=False,
-    MAIL_SERVER='smpt.gmail.com',
+    MAIL_SERVER='smtp.gmail.com',
     MAIL_PORT=587,
-    MAIL_USE_TL=True,
+    MAIL_USE_TLS=True, 
     MAIL_USE_SSL=False,
     MAIL_USERNAME='bplan4geeks@gmail.com',
     MAIL_PASSWORD=os.getenv('MAIL_PASSWORD')
@@ -490,6 +489,38 @@ def get_category_by_id(category_id):
     if category is None:
         return jsonify({'msg': f'La categoría con id {category_id} no existe'}), 404
     return jsonify({'id': category.id,'name': category.name,'image': category.image}), 200
+
+@app.route('/initialize_categories', methods=['POST'])
+def initialize_categories():
+    try:
+        # Eliminar las categorías existentes
+        Categories.query.delete()
+
+        # Restablecer la secuencia del ID para comenzar desde 1
+        db.session.execute("ALTER SEQUENCE categories_id_seq RESTART WITH 1")
+        db.session.commit()
+
+        required_categories = [
+            {"name": "Shows", "image_url": "https://i0.wp.com/eltiempolatino.com/wp-content/uploads/2022/08/cine.jpg?fit=1200%2C613&ssl=1"},
+            {"name": "Restaurants", "image_url": "https://www.clarin.com/2015/03/20/rkfYDQ027l_1200x0.jpg"},
+            {"name": "Outdoors", "image_url": "https://cdn.businessinsider.es/sites/navi.axelspringer.es/public/media/image/2022/08/amigos-piscina-verano-2777265.jpg?tf=3840x"},
+            {"name": "Sports", "image_url": "https://mongooseagency.com/files/3415/9620/1413/Return_of_Sports.jpg"},
+            {"name": "Art", "image_url": "https://cdn-museabrugge-be.cloud.glue.be/https%3A%2F%2Fwww.museabrugge.be%2Fvolumes%2Fgeneral%2FBezoek-het-Groeningemuseum_Musea-Brugge.jpg?dpr=2&w=1440&h=590&fit=crop&s=3c676338b7222eaf5b274e130e09698e"}
+        ]
+        
+        # Insertar las nuevas categorías
+        for category in required_categories:
+            existing_category = Categories.query.filter_by(name=category["name"]).first()
+            if not existing_category:
+                new_category = Categories(name=category["name"], image=category["image_url"])
+                db.session.add(new_category)
+        
+        db.session.commit()
+
+        return jsonify({'msg': 'Categorías inicializadas correctamente'}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'msg': 'Error al inicializar categorías', 'error': str(e)}), 500
 
 @app.route('/send_mail', methods={'GET'})
 def send_mail():
