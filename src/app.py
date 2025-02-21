@@ -23,7 +23,18 @@ from flask_mail import Mail, Message
 
 from flask_bcrypt import Bcrypt
 
-# from models import Person
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
+
+
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(
@@ -31,13 +42,14 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 
 app.config.update(dict(
-    DEBUG = False,
-    MAIL_SERVER = 'smtp.gmail.com',
-    MAIL_PORT = 587,
-    MAIL_USE_TL = True,
-    MAIL_USE_SSL = False,
-    MAIL_USERNAME = 'bplan4geeks@gmail.com',
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+
+    DEBUG=False,
+    MAIL_SERVER='smpt.gmail.com',
+    MAIL_PORT=587,
+    MAIL_USE_TL=True,
+    MAIL_USE_SSL=False,
+    MAIL_USERNAME='bplan4geeks@gmail.com',
+    MAIL_PASSWORD=os.getenv('MAIL_PASSWORD')
 ))
 
 mail = Mail(app)
@@ -50,7 +62,7 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
 CORS(app)
-# database condiguration
+# database configuration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
@@ -68,19 +80,15 @@ setup_admin(app)
 # add the admin
 setup_commands(app)
 
-# Add all endpoints form the API with a "api" prefix
+# Add all endpoints from the API with a "api" prefix
 app.register_blueprint(api, url_prefix='/api')
 
 # Handle/serialize errors like a JSON object
-
-
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
 # generate sitemap with all your endpoints
-
-
 @app.route('/')
 def sitemap():
     if ENV == "development":
@@ -148,18 +156,31 @@ def login():
 @app.route('/private', methods=["GET"])
 @jwt_required()
 def protected():
-    
     current_user = get_jwt_identity()
     return jsonify({'msg': 'ok', 'user': current_user}), 200
 
 @app.route('/user/profile', methods=['GET'])
 @jwt_required()
 def get_profile():
-    user_email = get_jwt_identity()
+    user_email = get_jwt_identity()  
+    print(f"Email obtenido del token: {user_email}") 
+
     user = User.query.filter_by(email=user_email).first()
     if user is None:
+        print("Usuario no encontrado en la base de datos") 
         return jsonify({'msg': 'Usuario no encontrado'}), 404
-    return jsonify({'msg': 'ok', 'user': {'id': user.id, 'email': user.email, 'name': user.name}}), 200
+    
+    response_data = {
+        'msg': 'ok',
+        'user': {
+            'id': user.id,
+            'email': user.email,
+            'name': user.name,
+            'image': user.image
+        }
+    }
+    print(f"Respuesta a enviar: {response_data}")  
+    return jsonify(response_data), 200
 
 @app.route('/user/profile', methods=['PUT'])
 @jwt_required()
@@ -204,7 +225,11 @@ def delete_profile():
     user = User.query.filter_by(email=user_email).first()
     if user is None:
         return jsonify({'msg': 'Usuario no encontrado'}), 404
+
+    
+
     Plan.query.filter_by(creator_id=user.id).delete()
+
     AssistantPlan.query.filter_by(user_id=user.id).delete()
     UserPlan.query.filter_by(user_id=user.id).delete()
     
@@ -280,7 +305,6 @@ def get_single_plan(plan_id):
     plan_serialized['assistants'] = [assistant_plan.assistant.serialize() for assistant_plan in plan.assistant_plans]
     return jsonify({'msg': 'ok', 'data': plan_serialized}), 200
 
-
 @app.route('/plans/<int:plan_id>', methods=['PUT'])
 def put_plan(plan_id):
     plan = Plan.query.get(plan_id)
@@ -306,6 +330,8 @@ def delete_plan(plan_id):
     user_email = get_jwt_identity()
     user = User.query.filter_by(email=user_email).first()
     plan = Plan.query.get(plan_id)
+
+
     if not plan:
         abort(404, description=f'El plan con id {plan_id} no existe')
     if plan.creator_id != user.id:
@@ -480,27 +506,52 @@ from flask import request, jsonify
 from werkzeug.utils import secure_filename
 import os
 
-@app.route('/api/uploadProfileImage', methods=['POST'])
+
+@app.route('/upload-profile-image', methods=['POST'])
 @jwt_required()
 def upload_profile_image():
-    user_email = get_jwt_identity()
-    user = User.query.filter_by(email=user_email).first()
-    if user is None:
-        return jsonify({'msg': 'Usuario no encontrado'}), 404
-    if 'file' not in request.files:
-        return jsonify({'msg': 'No se adjuntó ninguna imagen'}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'msg': 'No se adjuntó ninguna imagen'}), 400
-    filename = secure_filename(file.filename)
-    filepath = os.path.join('uploads', filename)
     
-    file.save(filepath)
-    user.image = filepath
-    db.session.commit()
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({"error": "Token no proporcionado"}), 403 
+
+
+    if 'image' not in request.files:
+        return 'No image part', 400
+
+    image = request.files['image']
+    if image.filename == '':
+        return 'No selected file', 400
+
+    try:
+        
+        upload_result = cloudinary.uploader.upload(image)
+       
+        image_url = upload_result['secure_url']
+
+        print("Image uploaded to Cloudinary, URL: ", image_url) 
+
+        
+        user_email = get_jwt_identity()
+        user = User.query.filter_by(email=user_email).first()
+        if user is None:
+            return jsonify({'msg': 'Usuario no encontrado'}), 404
+        
+       
+        user.image = image_url
+        db.session.commit()  
+
+        print(f"User profile updated with image URL: {user.image}")  
+
+        return jsonify({"msg": "Imagen de perfil actualizada exitosamente", "imageUrl": image_url}), 200
+
+    except Exception as e:
+        print(f"Error uploading image: {str(e)}")  
+        return jsonify({"error": str(e)}), 500
 
     return jsonify({'msg': 'Imagen subida correctamente', 'image_url': filepath}), 200
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
     app.run(host='0.0.0.0', port=PORT, debug=True)
+

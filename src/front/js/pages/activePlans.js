@@ -11,9 +11,20 @@ export const ActivePlans = () => {
   const { store, actions } = useContext(Context);
   const navigate = useNavigate();
 
+  
   const [profileImage, setProfileImage] = useState(
-    "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
+    localStorage.getItem("profileImage") || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
   );
+
+  const [backgroundImage, setBackgroundImage] = useState(
+    localStorage.getItem("backgroundImage") || "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBwYW50YWxsYSUyMGRlJTIwY29sb3Jlc3xlbnwwfHwwfHx8MA=="
+  );
+
+  const profileFileInputRef = useRef(null);
+  const backgroundFileInputRef = useRef(null);
+
+  
+
  
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
@@ -25,12 +36,15 @@ export const ActivePlans = () => {
     actions.getProfile(); 
   }, [actions]);
 
+
   const handleProfileImageChange = (event) => {
     const archivo = event.target.files[0];
     if (archivo) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        setProfileImage(e.target.result);
+        const newProfileImage = e.target.result;
+        setProfileImage(newProfileImage);
+        localStorage.setItem("profileImage", newProfileImage); 
       };
       reader.readAsDataURL(archivo);
     }
@@ -41,7 +55,9 @@ export const ActivePlans = () => {
     if (archivo) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        setBackgroundImage(e.target.result);
+        const newBackgroundImage = e.target.result;
+        setBackgroundImage(newBackgroundImage);
+        localStorage.setItem("backgroundImage", newBackgroundImage); 
       };
       reader.readAsDataURL(archivo);
     }
@@ -62,6 +78,16 @@ export const ActivePlans = () => {
   const handleHistoryClick = () => {
     navigate("/plans-history");
   };
+
+
+  const activePlans = [
+    { date: "2024-07-10", title: "Active Plan A" },
+    { date: "2024-08-12", title: "Active Plan B" },
+    { date: "2024-09-05", title: "Active Plan C" },
+    { date: "2024-10-18", title: "Active Plan D" },
+    { date: "2024-11-30", title: "Active Plan E" },
+    { date: "2024-12-10", title: "Active Plan F" },
+  ];
 
   const handleDeleteUser = async () => {
     try {
@@ -85,6 +111,7 @@ export const ActivePlans = () => {
     }
   };
 
+
   const chunkPlans = (plans, chunkSize) => {
     const result = [];
     for (let i = 0; i < plans.length; i += chunkSize) {
@@ -97,7 +124,11 @@ export const ActivePlans = () => {
   const groupedPlans = chunkPlans(filteredPlans, 4);
 
   return (
+
+   
+
     <div className="container mt-4" style={{ minHeight: "80vh" }}>
+
       <div
         id="profileBackground"
         className="mb-3 position-relative"
@@ -186,29 +217,64 @@ export const ActivePlans = () => {
 
       <div className="row text-center mb-4">
         <div className="col">
-          <button
-            onClick={handleProfileClick}
-            className="btnProfile w-100"
-          >
+          <button onClick={handleProfileClick} className="btnProfile w-100">
             Account
           </button>
         </div>
         <div className="col">
+
+          <button className="btnProfile w-100">Active plans</button>
+
           <button
             className="btnProfile w-100"
           >
             Active plans
           </button>
+
         </div>
         <div className="col">
-          <button
-            onClick={handleHistoryClick}
-            className="btnProfile w-100"
-          >
+          <button onClick={handleHistoryClick} className="btnProfile w-100">
             History
           </button>
         </div>
       </div>
+
+      <h4 className="text-center mb-4">Active Plans</h4>
+      <div
+        style={{
+          backgroundColor: "#67ABB8",
+          padding: "20px",
+          borderRadius: "10px",
+        }}
+      >
+        <Carousel interval={5000} indicators={false}>
+          {groupedPlans.map((group, index) => (
+            <Carousel.Item key={index}>
+              <div className="row justify-content-center">
+                {group.map((plan, idx) => (
+                  <div
+                    key={idx}
+                    className="col-3"
+                    style={{
+                      padding: "10px",
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div
+                      className="card"
+                      style={{
+                        backgroundColor: "#F15B40",
+                        padding: "20px",
+                        borderRadius: "8px",
+                        width: "100%",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <h5 className="text-white">{plan.title}</h5>
+                      <p className="text-white">Plan Date: {plan.date}</p>
+                    </div>
+
       <div className="container mt-4" style={{ height: "80vh" }}>
         <h4 className="text-center mb-4 text-dark">Active Plans</h4>
         <div style={{ backgroundColor: "#67ABB8", padding: "20px", borderRadius: "15px", boxShadow: "0 4px 8px rgba(0,0,0,0.2)" }}>
@@ -271,6 +337,7 @@ export const ActivePlans = () => {
                         </div>
                       );
                     })}
+
                   </div>
                 </Carousel.Item>
               ))
@@ -280,6 +347,23 @@ export const ActivePlans = () => {
           </Carousel>
         </div>
       </div>
+
+
+      <input
+        type="file"
+        ref={profileFileInputRef}
+        style={{ display: "none" }}
+        accept="image/*"
+        onChange={handleProfileImageChange}
+      />
+      <input
+        type="file"
+        ref={backgroundFileInputRef}
+        style={{ display: "none" }}
+        accept="image/*"
+        onChange={handleBackgroundImageChange}
+
+
     </div>
   );
 };
