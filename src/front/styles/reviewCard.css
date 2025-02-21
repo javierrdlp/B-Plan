@@ -1,0 +1,12 @@
+.card, .card-img{
+    border-radius: 1rem !important; 
+}
+
+.five-image{
+    width: 50%;
+}
+
+.custom-shadow {
+    box-shadow: 20px 20px 0 rgba(103,171,184, 1); /* Sombra negra con 50% de opacidad */
+}
+

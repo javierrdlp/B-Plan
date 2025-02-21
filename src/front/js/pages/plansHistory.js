@@ -1,48 +1,65 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { Context } from "../store/appContext";
 import { useNavigate } from "react-router-dom";
-import { Carousel } from "react-bootstrap"; 
+import { Carousel } from "react-bootstrap";
 import "../../styles/home.css";
 import "../../styles/profile.css";
+import logoFondo from "../../img/logo_fondo.png";
 
 export const PlansHistory = () => {
   const { store, actions } = useContext(Context);
   const navigate = useNavigate();
 
   const [profileImage, setProfileImage] = useState(
-    "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
+    localStorage.getItem("profileImage") || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
   );
+
   const [backgroundImage, setBackgroundImage] = useState(
-    "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww"
+    localStorage.getItem("backgroundImage") || "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBwYW50YWxsYSUyMGRlJTIwY29sb3Jlc3xlbnwwfHwwfHx8MA=="
   );
+
+ 
+
 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
 
+  
   const handleProfileImageChange = (event) => {
     const archivo = event.target.files[0];
     if (archivo) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        setProfileImage(e.target.result);
+        const newProfileImage = e.target.result;
+        setProfileImage(newProfileImage);
+        localStorage.setItem("profileImage", newProfileImage);
       };
       reader.readAsDataURL(archivo);
     }
   };
 
+  
   const handleBackgroundImageChange = (event) => {
     const archivo = event.target.files[0];
     if (archivo) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        setBackgroundImage(e.target.result);
+        const newBackgroundImage = e.target.result;
+        setBackgroundImage(newBackgroundImage);
+        localStorage.setItem("backgroundImage", newBackgroundImage);
       };
       reader.readAsDataURL(archivo);
     }
   };
 
   useEffect(() => {
+
+    document.title = "Plans History";
+
     document.title = "History Plans";
+    actions.updatePlanStatus();
+    actions.getPlansHistory();
+
   }, []);
 
   const handleProfileButtonClick = () => {
@@ -61,15 +78,6 @@ export const PlansHistory = () => {
     navigate("/active-plans");
   };
 
-  const plansHistory = [
-    { date: "2023-06-20", title: "History Plan A" },
-    { date: "2023-07-12", title: "History Plan B" },
-    { date: "2023-08-10", title: "History Plan C" },
-    { date: "2023-09-15", title: "History Plan D" },
-    { date: "2023-10-25", title: "History Plan E" },
-    { date: "2023-11-05", title: "History Plan F" },
-  ];
-
   const chunkPlans = (plans, chunkSize) => {
     const result = [];
     for (let i = 0; i < plans.length; i += chunkSize) {
@@ -78,38 +86,66 @@ export const PlansHistory = () => {
     return result;
   };
 
-  const groupedPlans = chunkPlans(plansHistory, 4);
+  const groupedPlans = chunkPlans(store.plansHistory, 4);
+
+  const handleDeleteUser = async () => {
+    try {
+      await actions.deleteUser();
+      navigate("/");
+    } catch (error) {
+      console.error("Error al eliminar el usuario:", error);
+    }
+  };
+
+  const handleStatusChange = async (planId) => {
+    try {
+      await actions.updatePlanStatus(planId);
+      console.log('Se cambio el estado del plan');
+    } catch (error) {
+      console.error('Error al cambiar el estado del plan', error);
+    }
+  };
 
   return (
-    <div className="container mt-4">
-      {/* Imagen de fondo */}
+
+
+    <div className="container mt-4" style={{ minHeight: "80vh" }}>
+
       <div
         id="profileBackground"
         className="mb-3 position-relative"
         style={{
           height: "300px",
           backgroundColor: "#ccc",
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: `url(${logoFondo})`,
           backgroundSize: "cover",
           backgroundPosition: "center center",
         }}
       >
-        <button
-          onClick={handleBackgroundButtonClick}
-          className="btnProfile position-absolute"
-          style={{
-            bottom: "10px",
-            right: "10px",
-            padding: "10px",
-            borderRadius: "50%",
-            zIndex: 10,
-          }}
-        >
-          <i className="fa-solid fa-camera-retro"></i>
+        <button type="button" class="mt-3 ms-3 border-3 border-dark btn btn-danger" data-bs-toggle="modal" data-bs-target="#Modal">
+          Delete Account
         </button>
+        <div class="modal fade" id="Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Are you sure you want to delete the account?</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                With this you confirm that you want to delete your account forever.
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="mt-1 ms-1 border-3 border-dark btn btn-danger" onClick={handleDeleteUser}>Delete Account</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>       
       </div>
 
-      {/* Imagen de perfil */}
       <div className="d-flex justify-content-center mb-4">
         <div className="position-relative">
           {!profileImage ? (
@@ -155,41 +191,26 @@ export const PlansHistory = () => {
         </div>
       </div>
 
-      {/* Nombre del usuario */}
       <div className="text-center mb-4">
-        <h4>{store.user?.name || "User Name"}</h4> 
+        <h4>{store.user?.name || "User Name"}</h4>
       </div>
 
       <hr className="my-4" />
 
-      {/* Botones de navegación */}
       <div className="row text-center mb-4">
         <div className="col">
-          <button
-            onClick={handleProfileClick}
-            className="btnProfile w-100"
-          >
+          <button onClick={handleProfileClick} className="btnProfile w-100">
             Account
           </button>
         </div>
         <div className="col">
-          <button
-            onClick={handleActivePlansClick}
-            className="btnProfile w-100"
-          >
-            Active plans
-          </button>
+          <button onClick={handleActivePlansClick} className="btnProfile w-100">Active plans</button>
         </div>
         <div className="col">
-          <button
-            className="btnProfile w-100"
-          >
-            History
-          </button>
+          <button className="btnProfile w-100">History</button>
         </div>
       </div>
-
-      {/* Carrusel de planes históricos */}
+      <h4 className="text-center mb-4">History Plans</h4>
       <div
         style={{
           backgroundColor: "#67ABB8",
@@ -197,45 +218,54 @@ export const PlansHistory = () => {
           borderRadius: "10px",
         }}
       >
-        <h4 className="text-center mb-4">History Plans</h4>
-
-        {/* Carrusel de React Bootstrap */}
         <Carousel interval={5000} indicators={false}>
-          {groupedPlans.map((group, index) => (
-            <Carousel.Item key={index}>
-              <div className="row justify-content-center">
-                {group.map((plan, idx) => (
-                  <div
-                    key={idx}
-                    className="col-3"
-                    style={{
-                      padding: "10px",
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  >
+          {groupedPlans.length > 0 ? (
+            groupedPlans.map((group, index) => (
+              <Carousel.Item key={index}>
+                <div className="row justify-content-center">
+                  {group.map((plan, idx) => (
                     <div
-                      className="card"
+                      key={idx}
+                      className="col-3"
                       style={{
-                        backgroundColor: "#F15B40",
-                        padding: "20px",
-                        borderRadius: "8px",
-                        width: "100%",
-                        boxSizing: "border-box",
+                        padding: "10px",
+                        display: "flex",
+                        justifyContent: "center",
                       }}
                     >
-                      <h5 className="text-white">{plan.title}</h5>
-                      <p className="text-white">Plan Date: {plan.date}</p>
+                      <div
+                        className="card"
+                        style={{
+                          backgroundColor: "#F15B40",
+                          padding: "20px",
+                          borderRadius: "8px",
+                          width: "100%",
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        <h5 className="text-white">{plan.name}</h5>
+                        <p className="text-white">Plan Date: {plan.date}</p>
+                        <p className="text-white">Time: {plan.start_time} - {plan.end_time}</p>
+                        <p className="text-white">Location: {plan.latitude}, {plan.longitude}</p>
+                        <p className="text-white">People: {plan.people_active} / {plan.people} people active</p>
+                        <div className="d-flex justify-content-between align-items-center mt-3">
+                          <p className="text-white">Created by: {plan.creator_name}</p>
+                          <span className={`badge ${plan.status === "open" ? "bg-success" : "bg-danger"}`}>
+                            {plan.status === "open" ? "Open" : "Closed"}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </Carousel.Item>
-          ))}
+                  ))}
+                </div>
+              </Carousel.Item>
+            ))
+          ) : (
+            <p className="text-center text-white">No history plans found.</p>
+          )}
         </Carousel>
       </div>
 
-      {/* Inputs de archivos ocultos */}
       <input
         type="file"
         ref={profileFileInputRef}

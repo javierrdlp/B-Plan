@@ -3,28 +3,101 @@ import { Context } from "../store/appContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../../styles/home.css";
 import "../../styles/profile.css";
+import logoFondo from "../../img/logo_fondo.png";
+
 
 export const Profile = () => {
   const { store, actions } = useContext(Context);
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
 
-  const [profileImage, setProfileImage] = useState("https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png");
-  const [backgroundImage, setBackgroundImage] = useState("https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww");
+
+  const [profileImage, setProfileImage] = useState(() => {
+    const savedImage = localStorage.getItem("profileImage");
+    return savedImage || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png";
+  });
+
+
+
+  const [backgroundImage, setBackgroundImage] = useState(
+    localStorage.getItem("backgroundImage") || "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww"
+  );
+
+  
+
 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
 
+
   const handleProfileImageChange = (event) => {
     const archivo = event.target.files[0];
     if (archivo) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        setProfileImage(e.target.result);
-      };
-      reader.readAsDataURL(archivo);
+      const formData = new FormData();
+      formData.append("image", archivo);
+
+      const backendUrl = process.env.BACKEND_URL;
+
+      fetch(`${backendUrl}upload-profile-image`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.imageUrl) {
+            console.log("Imagen de perfil actualizada", data.imageUrl);
+
+            localStorage.setItem("profileImage", data.imageUrl);
+            setProfileImage(data.imageUrl);
+          } else {
+            
+            console.error("Error al actualizar la imagen", data.error);
+          }
+        })
+        .catch((err) => {
+          console.error("Error al hacer la solicitud", err);
+        });
     }
   };
+
+  const getInfoUser = async function () {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No hay token de autenticación");
+
+      const response = await fetch(process.env.BACKEND_URL + "/user/profile", {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token,
+        }
+      })
+      const data = await response.json();
+      setProfileImage(data.user.image)
+      if (!data.user.image) {
+        setProfileImage("https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png");
+
+      }
+      else {
+        localStorage.setItem("profileImage", data.user.image)
+      }
+
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  useEffect(() => {
+    const savedImage = localStorage.getItem("profileImage");
+    if (savedImage) {
+      setProfileImage(savedImage);
+    } else {
+      getInfoUser()
+    }
+  }, []);
+
+
 
   const handleBackgroundImageChange = (event) => {
     const archivo = event.target.files[0];
@@ -32,12 +105,14 @@ export const Profile = () => {
       const reader = new FileReader();
       reader.onload = function (e) {
         setBackgroundImage(e.target.result);
+        localStorage.setItem("backgroundImage", e.target.result);
       };
       reader.readAsDataURL(archivo);
     }
   };
 
   useEffect(() => {
+    console.log("Profile component mounted");
     document.title = "Profile";
   }, []);
 
@@ -71,6 +146,42 @@ export const Profile = () => {
     interests: false,
   });
 
+  useEffect(() => {
+    if (store.user) {
+        setFormData({
+            name: store.user.name || "",
+            email: store.user.email || "",
+            phone: store.user.phone || "",
+            address: store.user.address || "",
+            dob: store.user.dob || "",
+            description: store.user.description || "",
+            interests: store.user.interests || "",
+        });
+    } else {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                console.log("LocalStorage user data:", user);
+
+                setFormData({
+                    name: user.name || "",
+                    email: user.email || "",
+                    phone: user.phone || "",
+                    address: user.address || "",
+                    dob: user.dob || "",
+                    description: user.description || "",
+                    interests: user.interests || "",
+                });
+            } catch (error) {
+                console.error("Error parsing user data from localStorage:", error);
+                localStorage.removeItem("user");
+            }
+        }
+    }
+}, [store.user]); 
+
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -100,32 +211,70 @@ export const Profile = () => {
     }
   };
 
+  useEffect(() => {
+    const token = store.token || localStorage.getItem('token');
+    if (!token) {
+      console.log("No token found, redirecting to login...");
+      navigate('/loged-home');
+    } else {
+      console.log("Token encontrado en Profile:", token);
+      actions.updatePlanStatus();
+    }
+  }, [store.token, navigate]);
+
+  const handleSaveChanges = () => {
+    localStorage.setItem("user", JSON.stringify(formData));
+
+    actions.saveProfile(formData);  
+    navigate("/loged-home");
+
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      await actions.deleteUser();
+      navigate("/loged-home");
+    } catch (error) {
+      console.error("Error al eliminar el usuario:", error);
+    }
+  };
+
   return (
     <div className="container mt-4">
+
       <div
         id="profileBackground"
         className="mb-3 position-relative"
         style={{
           height: "300px",
           backgroundColor: "#ccc",
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: `url(${logoFondo})`,
           backgroundSize: "cover",
           backgroundPosition: "center center",
         }}
       >
-        <button
-          onClick={handleBackgroundButtonClick}
-          className="btnProfile position-absolute"
-          style={{
-            bottom: "10px",
-            right: "10px",
-            padding: "10px",
-            borderRadius: "50%",
-            zIndex: 10,
-          }}
-        >
-          <i className="fa-solid fa-camera-retro"></i>
+        <button type="button" class="mt-3 ms-3 border-3 border-dark btn btn-danger" data-bs-toggle="modal" data-bs-target="#Modal">
+          Delete Account
         </button>
+        <div class="modal fade" id="Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Are you sure you want to delete the account?</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                With this you confirm that you want to delete your account forever.
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="mt-1 ms-1 border-3 border-dark btn btn-danger" onClick={handleDeleteUser}>Delete Account</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>        
       </div>
 
       <div className="d-flex justify-content-center mb-4">
@@ -266,7 +415,6 @@ export const Profile = () => {
               </span>
             </div>
           </div>
-
           <div className="mb-3">
             <label htmlFor="password" className="form-label">
               Password
@@ -277,7 +425,7 @@ export const Profile = () => {
                 className="form-control"
                 id="password"
                 name="password"
-                value={formData.password}
+                value={formData.password || ""}
                 onChange={handleInputChange}
                 disabled={!isEditing.password}
                 placeholder="Your password"
@@ -298,14 +446,14 @@ export const Profile = () => {
             </label>
             <div className="input-group">
               <input
-                type="text"
+                type="tel"
                 className="form-control"
                 id="phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
                 disabled={!isEditing.phone}
-                placeholder="Your phone"
+                placeholder="Your phone number"
               />
               <span
                 className="input-group-text"
@@ -375,10 +523,10 @@ export const Profile = () => {
                 className="form-control"
                 id="description"
                 name="description"
+                rows="3"
                 value={formData.description}
                 onChange={handleInputChange}
                 disabled={!isEditing.description}
-                placeholder="Your description"
               />
               <span
                 className="input-group-text"
@@ -399,10 +547,10 @@ export const Profile = () => {
                 className="form-control"
                 id="interests"
                 name="interests"
+                rows="3"
                 value={formData.interests}
                 onChange={handleInputChange}
                 disabled={!isEditing.interests}
-                placeholder="Your interests"
               />
               <span
                 className="input-group-text"
@@ -413,10 +561,16 @@ export const Profile = () => {
               </span>
             </div>
           </div>
+
+          <button
+            type="button"
+            className="btnProfile w-100 mt-3"
+            onClick={handleSaveChanges}
+          >
+            Save Changes
+          </button>
         </form>
       </div>
-
-      <button type="submit" className="btnProfile w-100 mt-3">Save Changes</button>
     </div>
   );
 };

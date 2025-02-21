@@ -1,0 +1,17 @@
+
+.boxOptions{
+  background-color: #67ABB8;
+  border-radius: 15px;
+}
+.newPlanPicture{
+    border-radius: 15px;
+    border: 5px solid #262626; 
+    
+}  
+.newPlanMap {
+  height: 400px; 
+  width: 100%;
+}
+.btnProfile{
+   font-size: 20px;   
+}
