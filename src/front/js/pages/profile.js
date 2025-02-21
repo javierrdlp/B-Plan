@@ -38,7 +38,7 @@ export const Profile = () => {
 
       const backendUrl = process.env.BACKEND_URL;
 
-      fetch(`${backendUrl}upload-profile-image`, {
+      fetch(`${backendUrl}/upload-profile-image`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`,
