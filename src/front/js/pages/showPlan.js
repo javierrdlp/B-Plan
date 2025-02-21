@@ -71,7 +71,10 @@ const ShowPlan = () => {
           width: "90%",
           borderRadius: "15px",
           backgroundColor: "white",
-          fontSize: "18px"
+          fontSize: "18px",
+          overflow: "hidden",
+          wordWrap: "break-word", 
+          wordBreak: "break-word",
         }}>
           <div className='col mb-3'>
             <i className="fa-solid fa-location-dot fa-lg me-2" style={{ color: "#F15B40" }}></i>
@@ -88,7 +91,10 @@ const ShowPlan = () => {
             {store.showedPlan.start_time} - {store.showedPlan.end_time}
           </div>
           <div className='col mb-3'>
-            {store.showedPlan.description}
+            <div className='col mb-3 newPlanDescription'>
+              {store.showedPlan.description}
+            </div>
+
           </div>
         </div>
         <div className="mb-3 mt-3 me-3 newPlanMap">
