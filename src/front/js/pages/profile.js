@@ -3,6 +3,8 @@ import { Context } from "../store/appContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../../styles/home.css";
 import "../../styles/profile.css";
+import logoFondo from "../../img/logo_fondo.png";
+
 
 export const Profile = () => {
   const { store, actions } = useContext(Context);
@@ -12,12 +14,7 @@ export const Profile = () => {
   
   const [profileImage, setProfileImage] = useState(
     localStorage.getItem("profileImage") || "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
-  );
-
- 
-  const [backgroundImage, setBackgroundImage] = useState(
-    localStorage.getItem("backgroundImage") || "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww"
-  );
+  );  
 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
@@ -151,7 +148,7 @@ export const Profile = () => {
     const token = store.token || localStorage.getItem('token');
     if (!token) {
       console.log("No token found, redirecting to login...");
-      navigate('/');
+      navigate('/loged-home');
     } else {
       console.log("Token encontrado en Profile:", token);
     }
@@ -160,13 +157,13 @@ export const Profile = () => {
   const handleSaveChanges = () => {
     localStorage.setItem("user", JSON.stringify(formData));
     actions.saveProfile(formData);  
-    navigate("/");
+    navigate("/loged-home");
   };
 
   const handleDeleteUser = async () => {
     try {
       await actions.deleteUser();
-      navigate("/");
+      navigate("/loged-home");
     } catch (error) {
       console.error("Error al eliminar el usuario:", error);
     }
@@ -181,7 +178,7 @@ export const Profile = () => {
         style={{
           height: "300px",
           backgroundColor: "#ccc",
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: `url(${logoFondo})`,
           backgroundSize: "cover",
           backgroundPosition: "center center",
         }}
@@ -207,20 +204,7 @@ export const Profile = () => {
               </div>
             </div>
           </div>
-        </div>
-        <button
-          onClick={handleBackgroundButtonClick}
-          className="btnProfile position-absolute"
-          style={{
-            bottom: "10px",
-            right: "10px",
-            padding: "10px",
-            borderRadius: "50%",
-            zIndex: 10,
-          }}
-        >
-          <i className="fa-solid fa-camera-retro"></i>
-        </button>
+        </div>        
       </div>
 
       <div className="d-flex justify-content-center mb-4">

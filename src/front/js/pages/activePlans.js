@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { Carousel } from "react-bootstrap";
 import "../../styles/home.css";
 import "../../styles/profile.css";
+import logoFondo from "../../img/logo_fondo.png";
+
 
 export const ActivePlans = () => {
   const { store, actions } = useContext(Context);
@@ -17,10 +19,7 @@ export const ActivePlans = () => {
   const [profileImage, setProfileImage] = useState(
     "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
   );
-  const [backgroundImage, setBackgroundImage] = useState(
-    "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww"
-  );
-
+ 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
 
@@ -124,7 +123,7 @@ export const ActivePlans = () => {
         style={{
           height: "300px",
           backgroundColor: "#ccc",
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: `url(${logoFondo})`,
           backgroundSize: "cover",
           backgroundPosition: "center center",
         }}
@@ -150,22 +149,8 @@ export const ActivePlans = () => {
               </div>
             </div>
           </div>
-        </div>
-        <button
-          onClick={handleBackgroundButtonClick}
-          className="btnProfile position-absolute"
-          style={{
-            bottom: "10px",
-            right: "10px",
-            padding: "10px",
-            borderRadius: "50%",
-            zIndex: 10,
-          }}
-        >
-          <i className="fa-solid fa-camera-retro"></i>
-        </button>
+        </div>       
       </div>
-
 
       <div className="d-flex justify-content-center mb-4">
         <div className="position-relative">
@@ -267,7 +252,16 @@ export const ActivePlans = () => {
                               <h5 className="card-title">{plan.name}</h5>
                               <p className="card-text">Date: {plan.date}</p>
                               <p className="card-text">Time: {plan.start_time} - {plan.end_time}</p>
-                              <p className="card-text">Location: {plan.latitude}, {plan.longitude}</p>
+                             
+                              <p className="card-text">Location: 
+                        <a className="ms-2"
+                          href={`https://www.google.com/maps?q=${plan.latitude},${plan.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                           View Location
+                        </a>
+                      </p>
                               <p className="card-text">People: {plan.people_active} / {plan.people} people active</p>
                               <div className="d-flex justify-content-between align-items-center mt-3">
                                 <p className="text-white">Created by: {plan.creator_name}</p>

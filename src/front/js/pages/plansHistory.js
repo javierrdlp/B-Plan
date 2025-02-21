@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Carousel } from "react-bootstrap";
 import "../../styles/home.css";
 import "../../styles/profile.css";
+import logoFondo from "../../img/logo_fondo.png";
 
 export const PlansHistory = () => {
   const { store, actions } = useContext(Context);
@@ -12,9 +13,7 @@ export const PlansHistory = () => {
   const [profileImage, setProfileImage] = useState(
     "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Dog-512.png"
   );
-  const [backgroundImage, setBackgroundImage] = useState(
-    "https://plus.unsplash.com/premium_photo-1685082778336-282f52a3a923?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Zm9uZG8lMjBkZSUyMHBhbnRhbGxhJTIwZGElMjBjb2xvcmVzfGVufDB8fDB8fHww"
-  );
+ 
 
   const profileFileInputRef = useRef(null);
   const backgroundFileInputRef = useRef(null);
@@ -98,7 +97,7 @@ export const PlansHistory = () => {
         style={{
           height: "300px",
           backgroundColor: "#ccc",
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: `url(${logoFondo})`,
           backgroundSize: "cover",
           backgroundPosition: "center center",
         }}
@@ -124,20 +123,7 @@ export const PlansHistory = () => {
               </div>
             </div>
           </div>
-        </div>
-        <button
-          onClick={handleBackgroundButtonClick}
-          className="btnProfile position-absolute"
-          style={{
-            bottom: "10px",
-            right: "10px",
-            padding: "10px",
-            borderRadius: "50%",
-            zIndex: 10,
-          }}
-        >
-          <i className="fa-solid fa-camera-retro"></i>
-        </button>
+        </div>       
       </div>
 
       <div className="d-flex justify-content-center mb-4">

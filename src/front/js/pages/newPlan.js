@@ -10,7 +10,7 @@ import { Context } from "../store/appContext";
 const NewPlan = () => {
   const { store, actions } = useContext(Context);
   const [selectedImg, setSelectedImg] = useState(
-    "https://i0.wp.com/eltiempolatino.com/wp-content/uploads/2022/08/cine.jpg?fit=1200%2C613&ssl=1"
+    
   );
   const [showImageOptions, setShowImageOptions] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,6 +23,11 @@ const NewPlan = () => {
     category: 1,
     description: "",
   });
+
+   useEffect(() => {
+          const today = new Date().toISOString().split('T')[0];
+          document.getElementById("date").setAttribute("min", today);
+      }, []);
 
   useEffect(() => {
     actions.getCategories();
@@ -160,6 +165,7 @@ const NewPlan = () => {
     };
   
     try {
+      console.log(planData);
       await actions.createPlan(planData);
       navigate("/active-plans");
     } catch (error) {
@@ -254,7 +260,7 @@ const NewPlan = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                disabled={!isEditing.name}
+                
                 placeholder="Your plan name"
               />
               <span
@@ -272,15 +278,14 @@ const NewPlan = () => {
             <label htmlFor="numberOfPeople" className="form-label">
               Number of People
             </label>
-            <div className="input-group">
+            <div className="input-group" >
               <input
                 type="number"
                 className="form-control"
                 id="numberOfPeople"
                 name="numberOfPeople"
                 value={formData.numberOfPeople}
-                onChange={handleInputChange}
-                disabled={!isEditing.numberOfPeople}
+                onChange={handleInputChange}                
                 placeholder="Number of people"
               />
               <span
@@ -306,7 +311,7 @@ const NewPlan = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleInputChange}
-                disabled={!isEditing.date}
+                
               />
               <span
                 className="input-group-text"
@@ -331,7 +336,7 @@ const NewPlan = () => {
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleInputChange}
-                disabled={!isEditing.startTime}
+                
               />
               <span
                 className="input-group-text"
@@ -356,7 +361,7 @@ const NewPlan = () => {
                 name="endTime"
                 value={formData.endTime}
                 onChange={handleInputChange}
-                disabled={!isEditing.endTime}
+                
               />
               <span
                 className="input-group-text"
@@ -381,7 +386,7 @@ const NewPlan = () => {
                 name="location"
                 value={formData.location}
                 onChange={handleLocationChange}
-                disabled={!isEditing.location}
+                
                 placeholder="Enter location"
               />
               <span
@@ -426,7 +431,7 @@ const NewPlan = () => {
                 rows="3"
                 value={formData.description}
                 onChange={handleInputChange}
-                disabled={!isEditing.description}
+                
                 placeholder="Describe your plan"
               />
               <span

@@ -55,7 +55,7 @@ export const Home = () => {
       localStorage.setItem("token", store.token);  
       setShowLoginPopup(false);
       setIsLoggedIn(true);  
-      navigate('/profile');
+      navigate('/loged-home');
     } catch (error) {
       console.error('Error al intentar iniciar sesión', error);
     }
@@ -225,7 +225,7 @@ export const Home = () => {
                   <input type="password" className="form-control" id="login-password" onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <div className="d-flex justify-content-center">
-                  {isLoggedIn ? (<Link to={"/profile"}>   <button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Login</button></Link>) : (<button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Login</button>)}
+                  {isLoggedIn ? (<Link to={"/loged-home"}>   <button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Login</button></Link>) : (<button type="submit" data-bs-dismiss="modal" className="ok-register-button btn btn-secondary">Login</button>)}
                 </div>
               </form>
             </div>

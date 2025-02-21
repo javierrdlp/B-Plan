@@ -29,10 +29,12 @@ const ShowPlan = () => {
     try {
       const result = await actions.joinPlan(store.showedPlan.id);
       console.log("Unido al plan con éxito:", result);
+      navigate("/active-plans");
 
     } catch (error) {
       console.error("Error al unirse al plan:", error.message);
-      alert(error.message)
+      await alert(error.message)
+      navigate("/loged-home");
     }
   }
 
@@ -86,9 +88,8 @@ const ShowPlan = () => {
             {store.showedPlan.start_time} - {store.showedPlan.end_time}
           </div>
           <div className='col mb-3'>
-            {store.showedPlan.people_a}
+            {store.showedPlan.description}
           </div>
-
         </div>
         <div className="mb-3 mt-3 me-3 newPlanMap">
           <Map
