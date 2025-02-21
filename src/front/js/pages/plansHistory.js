@@ -43,6 +43,7 @@ export const PlansHistory = () => {
 
   useEffect(() => {
     document.title = "History Plans";
+    actions.updatePlanStatus();
     actions.getPlansHistory();
   }, []);
 

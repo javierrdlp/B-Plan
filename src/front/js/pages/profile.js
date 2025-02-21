@@ -154,6 +154,7 @@ export const Profile = () => {
       navigate('/');
     } else {
       console.log("Token encontrado en Profile:", token);
+      actions.updatePlanStatus();
     }
   }, [store.token, navigate]);
 

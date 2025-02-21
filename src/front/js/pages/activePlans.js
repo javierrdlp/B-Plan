@@ -21,8 +21,9 @@ export const ActivePlans = () => {
 
   useEffect(() => {
     document.title = "Active Plans";
+    actions.updatePlanStatus();
     actions.getActivePlans();
-    actions.getProfile();
+    actions.getProfile(); 
   }, [actions]);
 
   const handleProfileImageChange = (event) => {
@@ -208,7 +209,6 @@ export const ActivePlans = () => {
         </div>
         <div className="col">
           <button
-            onClick={() => actions.updatePlanStatus()}
             className="btnProfile w-100"
           >
             Active plans

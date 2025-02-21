@@ -339,35 +339,35 @@ const getState = ({ getStore, getActions, setStore }) => {
 			},
 
 			updatePlanStatus: async () => {
-                try {
-                    const token = localStorage.getItem("token");
-                    if (!token) {
-                        console.error("No token found!");
-                        return;
-                    }
-
-                    const response = await fetch(`${process.env.BACKEND_URL}/update_plans_status`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.msg || "Error al actualizar el estado de los planes");
-                    }
-
-                    const data = await response.json();
-                    console.log(data.msg);
-                    alert(data.msg);
-                    getActions().getPlansHistory(); 
-
-                } catch (error) {
-                    console.error("Error al actualizar el estado de los planes:", error);
-                }
-            },
+				try {
+				  const token = localStorage.getItem("token");
+				  if (!token) {
+					console.error("No hay token disponible");
+					return;
+				  }
+			  
+				  const response = await fetch(`${process.env.BACKEND_URL}/update_plans_status`, {
+					method: 'PUT',
+					headers: {
+					  'Authorization': `Bearer ${token}`,
+					  'Content-Type': 'application/json',
+					},
+				  });
+			  
+				  if (!response.ok) {
+					const errorData = await response.json();
+					throw new Error(errorData.msg || "Error al actualizar el estado de los planes");
+				  }
+			  
+				  const data = await response.json();
+				  console.log(data.msg); 
+				  return data; 
+			  
+				} catch (error) {
+				  console.error("Error al actualizar el estado de los planes:", error);
+				  throw error; 
+				}
+			  },
 
 			deletePlan: async (planId, userId) => {
 				try {
