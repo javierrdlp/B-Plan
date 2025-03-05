@@ -1,15 +1,31 @@
-# WebApp boilerplate with React JS and Flask API
+# B-Plan
 
-Build web applications using React.js for the front end and python/flask for your backend API.
+B-Plan is a website where you can search for, create, and join plans while enjoying meeting new people.
+  - User creation and customization
+  - Event creation by category, location, date, start and end time, and number of participants
+  - Event search with filtering options
+  - Profile with personal information, event history, and status
+    
+### Table Of Contents
+  - Appearance
 
-- Documentation can be found here: https://start.4geeksacademy.com/starters/react-flask
-- Here is a video on [how to use this template](https://www.loom.com/share/f37c6838b3f1496c95111e515e83dd9b)
-- Integrated with Pipenv for package managing.
-- Fast deployment to heroku [in just a few steps here](https://start.4geeksacademy.com/backend/deploy-heroku-posgres).
-- Use of .env file.
-- SQLAlchemy integration for database abstraction.
 
-### 1) Installation:
+## Appearance
+
+<img src="https://github.com/user-attachments/assets/f6e9d02b-d403-4289-a76c-583dd7f7332d" width="300">
+<img src="https://github.com/user-attachments/assets/f4518ac2-edf4-40b6-a514-8c99b349b4d1" width="300">
+<img src="https://github.com/user-attachments/assets/7edf4608-9688-4e37-a547-57a7dd928a68" width="300">
+<img src="https://github.com/user-attachments/assets/ac899953-b797-4089-8877-dcfd4c17f085" width="300">
+
+
+
+
+
+
+
+
+
+
 
 > If you use Github Codespaces (recommended) or Gitpod this template will already come with Python, Node and the Posgres Database installed. If you are working locally make sure to install Python 3.10, Node 
 
