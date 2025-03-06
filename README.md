@@ -9,10 +9,11 @@ B-Plan is a platform that makes it easy to search for, create, and join plans wh
 
 ## Appearance
 
-![Image 1](https://github.com/user-attachments/assets/f6e9d02b-d403-4289-a76c-583dd7f7332d)
-![Image 2](https://github.com/user-attachments/assets/f4518ac2-edf4-40b6-a514-8c99b349b4d1)
-![Image 3](https://github.com/user-attachments/assets/7edf4608-9688-4e37-a547-57a7dd928a68)
-![Image 4](https://github.com/user-attachments/assets/ac899953-b797-4089-8877-dcfd4c17f085)
+<img src="https://github.com/user-attachments/assets/f6e9d02b-d403-4289-a76c-583dd7f7332d" width="400" />
+<img src="https://github.com/user-attachments/assets/f4518ac2-edf4-40b6-a514-8c99b349b4d1" width="400" />
+<img src="https://github.com/user-attachments/assets/7edf4608-9688-4e37-a547-57a7dd928a68" width="400" />
+<img src="https://github.com/user-attachments/assets/ac899953-b797-4089-8877-dcfd4c17f085" width="400" />
+
 
 ## Features
 
@@ -22,7 +23,6 @@ B-Plan is a platform that makes it easy to search for, create, and join plans wh
 - Event search with advanced filtering options
 - Event management, allowing users to leave events or delete their own
 
-<a id="the-process"></a>
 ## The Process
 
 Here you can describe the process in detail...
