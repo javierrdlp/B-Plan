@@ -1,21 +1,31 @@
 # B-Plan
 
-B-Plan is a website where you can search for, create, and join plans while enjoying meeting new people.
-  - User creation and customization
-  - Event creation by category, location, date, start and end time, and number of participants
-  - Event search with filtering options
-  - Profile with personal information, event history, and status
-    
-### Table Of Contents
-  - Appearance
+B-Plan is a platform that makes it easy to search for, create, and join plans while connecting with new people.
 
+## Table of Contents
+- [Appearance](#appearance)
+- [Features](#features)
+- [The Process](#the-process)
 
 ## Appearance
 
-<img src="https://github.com/user-attachments/assets/f6e9d02b-d403-4289-a76c-583dd7f7332d" width="300">
-<img src="https://github.com/user-attachments/assets/f4518ac2-edf4-40b6-a514-8c99b349b4d1" width="300">
-<img src="https://github.com/user-attachments/assets/7edf4608-9688-4e37-a547-57a7dd928a68" width="300">
-<img src="https://github.com/user-attachments/assets/ac899953-b797-4089-8877-dcfd4c17f085" width="300">
+![Image 1](https://github.com/user-attachments/assets/f6e9d02b-d403-4289-a76c-583dd7f7332d)
+![Image 2](https://github.com/user-attachments/assets/f4518ac2-edf4-40b6-a514-8c99b349b4d1)
+![Image 3](https://github.com/user-attachments/assets/7edf4608-9688-4e37-a547-57a7dd928a68)
+![Image 4](https://github.com/user-attachments/assets/ac899953-b797-4089-8877-dcfd4c17f085)
+
+## Features
+
+- User creation and customization
+- Profile management, including personal information, event history, and status
+- Event creation, specifying category, location, date, start and end time, and number of participants
+- Event search with advanced filtering options
+- Event management, allowing users to leave events or delete their own
+
+<a id="the-process"></a>
+## The Process
+
+Here you can describe the process in detail...
 
 
 
