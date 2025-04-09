@@ -10,7 +10,7 @@ import { Context } from "../store/appContext";
 const NewPlan = () => {
   const { store, actions } = useContext(Context);
   const [selectedImg, setSelectedImg] = useState(
-    
+
   );
   const [showImageOptions, setShowImageOptions] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,10 +24,10 @@ const NewPlan = () => {
     description: "",
   });
 
-   useEffect(() => {
-          const today = new Date().toISOString().split('T')[0];
-          document.getElementById("date").setAttribute("min", today);
-      }, []);
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("date").setAttribute("min", today);
+  }, []);
 
   useEffect(() => {
     actions.initializeCategories();
@@ -165,7 +165,7 @@ const NewPlan = () => {
       description: formData.description,
       image: selectedImg,
     };
-  
+
     try {
       console.log(planData);
       await actions.createPlan(planData);
@@ -179,7 +179,7 @@ const NewPlan = () => {
       <div
         className="newPlanPicture position-relative mb-4"
         style={{
-          height: "600px",
+          height: "350px",
           backgroundColor: "#ccc",
           backgroundImage: `url(${selectedImg})`,
           backgroundSize: "cover",
@@ -188,17 +188,16 @@ const NewPlan = () => {
         }}
       >
         <button
-          className="btnSwap position-absolute"
+          className="btnSwap  w-30 mt-3 position-absolute"          
           style={{
             bottom: "10px",
             right: "10px",
-            padding: "10px 20px",
-            borderRadius: "50%",
-            zIndex: 10,
+            padding: "10px 20px"
+
           }}
           onClick={() => setShowImageOptions(!showImageOptions)}
         >
-          <i className="fa-solid fa-arrows-rotate"></i>
+          Category
         </button>
 
         {showImageOptions && (
@@ -209,7 +208,7 @@ const NewPlan = () => {
             }}
           >
             <div className="d-flex flex-column">
-            
+
               <button
                 className="btnOptions mb-2"
                 onClick={() => handleImageSelect("Shows")}
@@ -262,7 +261,7 @@ const NewPlan = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                
+
                 placeholder="Your plan name"
               />
               <span
@@ -287,7 +286,7 @@ const NewPlan = () => {
                 id="numberOfPeople"
                 name="numberOfPeople"
                 value={formData.numberOfPeople}
-                onChange={handleInputChange}                
+                onChange={handleInputChange}
                 placeholder="Number of people"
               />
               <span
@@ -313,7 +312,7 @@ const NewPlan = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleInputChange}
-                
+
               />
               <span
                 className="input-group-text"
@@ -338,7 +337,7 @@ const NewPlan = () => {
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleInputChange}
-                
+
               />
               <span
                 className="input-group-text"
@@ -363,7 +362,7 @@ const NewPlan = () => {
                 name="endTime"
                 value={formData.endTime}
                 onChange={handleInputChange}
-                
+
               />
               <span
                 className="input-group-text"
@@ -388,7 +387,7 @@ const NewPlan = () => {
                 name="location"
                 value={formData.location}
                 onChange={handleLocationChange}
-                
+
                 placeholder="Enter location"
               />
               <span
@@ -433,7 +432,7 @@ const NewPlan = () => {
                 rows="3"
                 value={formData.description}
                 onChange={handleInputChange}
-                
+
                 placeholder="Describe your plan"
               />
               <span

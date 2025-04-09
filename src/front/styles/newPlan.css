@@ -1,16 +1,16 @@
 .btnSwap {
     background-color: #F15B40;
     color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 50%;
-    font-size: 18px;
-    z-index: 1; 
+    
+    padding: 10px 10px;
+    border-radius: 10px;
+    font-size: 25px;
+    border: 2px solid #262626;
 }
 .btnOptions{
   background-color: #F15B40;
     color: white;
-    border-radius: 15px;
+    border-radius: 10px;
 }
 .boxOptions{
   background-color: #67ABB8;
