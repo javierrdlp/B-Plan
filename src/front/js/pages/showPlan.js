@@ -40,7 +40,7 @@ const ShowPlan = () => {
 
 
   return (
-    <div className="container mt-5" style={{ minheight: "80vh" }}>
+    <div className="container mt-5" style={{ minHeight: "80vh" }}>
       <div
         className="newPlanPicture position-relative mb-4"
         style={{
@@ -73,7 +73,7 @@ const ShowPlan = () => {
           backgroundColor: "white",
           fontSize: "18px",
           overflow: "hidden",
-          wordWrap: "break-word", 
+          wordWrap: "break-word",
           wordBreak: "break-word",
         }}>
           <div className='col mb-3'>

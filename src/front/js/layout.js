@@ -41,20 +41,6 @@ const Layout = () => {
 
     if (localStorage.getItem("token")) {
 
-        const planData = {
-            name: "Visit to the Museum",
-            numberOfPeople: 5,
-            date: "2025-02-15",
-            startTime: "10:00",
-            endTime: "13:00",
-            location: "Museum of Modern Art",
-            category: "Art",
-            description: "Join us for a cultural experience at the museum.",
-            image: "https://cdn-museabrugge-be.cloud.glue.be/https%3A%2F%2Fwww.museabrugge.be%2Fvolumes%2Fgeneral%2FBezoek-het-Groeningemuseum_Musea-Brugge.jpg?dpr=2&w=1440&h=590&fit=crop&s=3c676338b7222eaf5b274e130e09698e",
-            locationCoordinates: { lat: 40.4168, lng: -3.7038 },
-        };
-
-
         return (
             <div>
                 <BrowserRouter basename={basename}>
