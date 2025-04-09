@@ -277,7 +277,8 @@ export const ActivePlans = () => {
                           <div className="d-flex justify-content-between mt-3">
                             {store.user?.id === plan.creator.id ? (
                               <button
-                                className="btn btn-danger"
+                                className="btn btn-danger border-3 border-dark"
+                                style={{ backgroundColor: "#ab051a" }}
                                 onClick={() => handleDeletePlan(plan.id)}
                               >
                                 Eliminar

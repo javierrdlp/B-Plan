@@ -96,7 +96,8 @@ const NewPlan = () => {
         break;
       case "Sports":
         setSelectedImg(
-          "https://mongooseagency.com/files/3415/9620/1413/Return_of_Sports.jpg"
+          "https://img.freepik.com/foto-gratis/herramientas-deportivas_53876-138077.jpg?t=st=1744186420~exp=1744190020~hmac=2cd67c1986d1a1fa2c390cb3e06f5e1099e2b777f34128023f82aa0e4f5dcab5&w=996"
+          //"https://mongooseagency.com/files/3415/9620/1413/Return_of_Sports.jpg"
         );
         setFormData((prevData) => ({
           ...prevData,
